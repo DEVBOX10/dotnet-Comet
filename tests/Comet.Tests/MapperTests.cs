@@ -1,4 +1,5 @@
 ﻿using System;
+using Microsoft.Maui;
 using Xunit;
 
 namespace Comet.Tests
@@ -14,12 +15,12 @@ namespace Comet.Tests
 			bool wasMapper2Called = false;
 			var mapper1 = new PropertyMapper<View>
 			{
-				[EnvironmentKeys.Colors.BackgroundColor] = (r, v) => wasMapper1Called = true
+				[EnvironmentKeys.Colors.Background] = (r, v) => wasMapper1Called = true
 			};
 
 			var mapper2 = new PropertyMapper<Button>(mapper1)
 			{
-				[EnvironmentKeys.Colors.BackgroundColor] = (r, v) => wasMapper2Called = true
+				[EnvironmentKeys.Colors.Background] = (r, v) => wasMapper2Called = true
 			};
 
 			mapper2.UpdateProperties(null, new Button());
@@ -40,7 +41,7 @@ namespace Comet.Tests
 
 			var mapper2 = new PropertyMapper<Button>(mapper1)
 			{
-				[EnvironmentKeys.Colors.BackgroundColor] = (r, v) => wasMapper2Called = true
+				[EnvironmentKeys.Colors.Background] = (r, v) => wasMapper2Called = true
 			};
 
 			mapper2.UpdateProperties(null, new Button());
@@ -62,7 +63,7 @@ namespace Comet.Tests
 
 			var mapper2 = new PropertyMapper<Button>(mapper1)
 			{
-				[EnvironmentKeys.Colors.BackgroundColor] = (r, v) => wasMapper2Called = true
+				[EnvironmentKeys.Colors.Background] = (r, v) => wasMapper2Called = true
 			};
 
 			mapper1[EnvironmentKeys.Colors.Color] = (r, v) => wasMapper3Called = true;

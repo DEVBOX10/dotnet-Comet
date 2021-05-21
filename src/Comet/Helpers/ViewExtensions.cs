@@ -64,26 +64,26 @@ namespace Comet
 			return title;
 		}
 
-		public static T AddGesture<T>(this T view, Gesture gesture) where T : View
-		{
-			var gestures = (List<Gesture>)(view.Gestures ?? (view.Gestures = new List<Gesture>()));
-			gestures.Add(gesture);
-			view?.ViewHandler?.UpdateValue(Comet.Gesture.AddGestureProperty, gesture);
-			return view;
-		}
-		public static T RemoveGesture<T>(this T view, Gesture gesture) where T : View
-		{
-			var gestures = (List<Gesture>)view.Gestures;
-			gestures.Remove(gesture);
-			view?.ViewHandler?.UpdateValue(Comet.Gesture.RemoveGestureProperty, gesture);
-			return view;
-		}
+		//public static T AddGesture<T>(this T view, Gesture gesture) where T : View
+		//{
+		//	var gestures = (List<Gesture>)(view.Gestures ?? (view.Gestures = new List<Gesture>()));
+		//	gestures.Add(gesture);
+		//	view?.ViewHandler?.UpdateValue(Comet.Gesture.AddGestureProperty);
+		//	return view;
+		//}
+		//public static T RemoveGesture<T>(this T view, Gesture gesture) where T : View
+		//{
+		//	var gestures = (List<Gesture>)view.Gestures;
+		//	gestures.Remove(gesture);
+		//	view?.ViewHandler?.UpdateValue(Comet.Gesture.RemoveGestureProperty);
+		//	return view;
+		//}
 
-		public static T OnTap<T>(this T view, Action<T> action) where T : View
-			=> view.AddGesture(new TapGesture((g) => action?.Invoke(view)));
+		//public static T OnTap<T>(this T view, Action<T> action) where T : View
+		//	=> view.AddGesture(new TapGesture((g) => action?.Invoke(view)));
 
-		public static T OnTapNavigate<T>(this T view, Func<View> destination) where T : View
-			=> view.OnTap((v) => NavigationView.Navigate(view, destination.Invoke()));
+		//public static T OnTapNavigate<T>(this T view, Func<View> destination) where T : View
+		//	=> view.OnTap((v) => NavigationView.Navigate(view, destination.Invoke()));
 
 		public static void Navigate(this View view, View destination) => NavigationView.Navigate(view, destination);
 
@@ -114,5 +114,10 @@ namespace Comet
 			var resultView = view.FindParentOfType<ResultView<T>>();
 			resultView.SetException(ex);
 		}
+
+		public static string GetAutomationId(this View view)
+			=> view.GetEnvironment<string>(view, EnvironmentKeys.View.AutomationId,cascades:false);
+		public static void SetAutomationId(this View view, string automationId)
+			=> view.SetEnvironment(EnvironmentKeys.View.AutomationId, automationId, cascades: false);
 	}
 }

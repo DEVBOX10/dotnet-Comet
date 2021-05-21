@@ -7,6 +7,7 @@ using System.Reflection;
 using Comet.Helpers;
 using Comet.Internal;
 using Comet.Reflection;
+using Microsoft.Maui.Essentials;
 
 namespace Comet
 {
