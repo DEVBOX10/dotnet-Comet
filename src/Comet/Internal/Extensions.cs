@@ -9,6 +9,17 @@ namespace Comet.Internal
 {
 	public static class Extensions
 	{
+		public static T GetValueOfType<T>(this object obj)
+		{
+			if (obj is T t)
+				return t;
+			if (obj is Binding<T> bt)
+				return bt.CurrentValue;
+			if (obj is Binding b && b.Value is T bv)
+				return bv;
+			return default(T);
+		}
+
 		public static View FindViewById(this View view, string id)
 		{
 			if(view == null)
@@ -19,8 +30,6 @@ namespace Comet.Internal
 				return ic.GetChildren().Select(x => x.FindViewById(id)).FirstOrDefault();
 			return null;
 		}
-
-	
 
 		public static Func<View> GetBody(this View view)
 		{
@@ -45,17 +54,17 @@ namespace Comet.Internal
 			return view;
 		}
 
-		public static T FindParentOfType<T>(this View view) where T : View
+		public static T FindParentOfType<T>(this View view)
 		{
 			if (view == null)
-				return null;
+				return default;
 			if (view.BuiltView is T bt)
 			{
 				return bt;
 			}
 			if (view is T t)
 				return t;
-			return view.Parent?.FindParentOfType<T>();
+			return view.Parent.FindParentOfType<T>() ?? default;
 		}
 	}
 }

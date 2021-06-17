@@ -19,8 +19,8 @@ using Rectangle = Microsoft.Maui.Graphics.Rectangle;
 namespace Comet
 {
 
-	public class View : ContextualObject, IDisposable, IView, IHotReloadableView, IPage, ISafeAreaView//, IClipShapeView
-	{		
+	public class View : ContextualObject, IDisposable, IView, IHotReloadableView, IPage, ISafeAreaView, IContentTypeHash//, IClipShapeView
+	{
 		public static readonly Size UseAvailableWidthAndHeight = new Size(-1, -1);
 
 		HashSet<(string Field, string Key)> usedEnvironmentData = new HashSet<(string Field, string Key)>();
@@ -117,6 +117,8 @@ namespace Comet
 			var oldViewHandler = viewHandler;
 			//viewHandler?.Remove(this);
 			viewHandler = handler;
+			if(viewHandler?.VirtualView != this)
+				viewHandler?.SetVirtualView(this);
 			if (replacedView != null)
 				replacedView.ViewHandler = handler;
 			return true;
@@ -370,6 +372,21 @@ namespace Comet
 			{
 				var key = item.Key;
 				var value = this.GetEnvironment(key);
+				if(value == null)
+				{
+					//Get the current MauiContext
+					//I might be able to do something better, like searching up though the parent
+					//Maybe I can do something where I get the current Context whenever I build
+					var mauiContext = this.ViewHandler?.MauiContext ?? CometApp.CurrentWindow?.MauiContext;
+					if (mauiContext != null)
+					{
+						var type = this.GetType();
+						var prop = type.GetDeepField(item.Field);
+						var service = mauiContext.Services.GetService(prop.FieldType);
+						if (service != null)
+							value = service;
+					}
+				}
 				if (value == null)
 				{
 					//Check the replaced view
@@ -671,6 +688,26 @@ namespace Comet
 
 		Paint IFrameworkElement.Background => this.GetBackground();
 
+		double ITransform.TranslationX => this.GetEnvironment<double>(nameof(ITransform.TranslationX));
+
+		double ITransform.TranslationY => this.GetEnvironment<double>(nameof(ITransform.TranslationY));
+
+		double ITransform.Scale => this.GetEnvironment<double?>(nameof(ITransform.Scale)) ?? 1;
+
+		double ITransform.ScaleX => this.GetEnvironment<double?>(nameof(ITransform.ScaleX)) ?? 1;
+
+		double ITransform.ScaleY => this.GetEnvironment<double?>(nameof(ITransform.ScaleY)) ?? 1;
+
+		double ITransform.Rotation => this.GetEnvironment<double>(nameof(ITransform.Rotation));
+
+		double ITransform.RotationX => this.GetEnvironment<double>(nameof(ITransform.RotationX));
+
+		double ITransform.RotationY => this.GetEnvironment<double>(nameof(ITransform.RotationY));
+
+		double ITransform.AnchorX => this.GetEnvironment<double?>(nameof(ITransform.AnchorX)) ?? .5;
+
+		double ITransform.AnchorY => this.GetEnvironment<double?>(nameof(ITransform.AnchorY)) ?? .5;
+
 		Size IFrameworkElement.Arrange(Rectangle bounds)
 		{
 			LayoutSubviews(bounds);
@@ -693,5 +730,7 @@ namespace Comet
 			}
 		}
 		void IHotReloadableView.Reload() => ThreadHelper.RunOnMainThread(() => Reload(true));
+		protected int? TypeHashCode;
+		public virtual int GetContentTypeHashCode() => this.replacedView?.GetContentTypeHashCode() ?? (TypeHashCode ??= this.GetType().GetHashCode());
 	}
 }
