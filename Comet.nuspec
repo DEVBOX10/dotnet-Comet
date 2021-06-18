@@ -43,15 +43,6 @@
         <dependency id="Microsoft.Extensions.Configuration" version="5.0.0" />
         <dependency id="Reloadify3000" version="1.0.6" />
       </group>
-      <group targetFramework=".NETStandard2.0">
-        <dependency id="Microsoft.Maui.Graphics" version="6.0.100-preview.4.134" exclude="Build,Analyzers" />
-        <dependency id="Microsoft.Extensions.Configuration" version="5.0.0" />
-        <dependency id="Microsoft.Extensions.Hosting.Abstractions" version="5.0.0" />
-        <dependency id="Microsoft.Extensions.Logging.Abstractions" version="5.0.0" />
-        <dependency id="Microsoft.Extensions.DependencyInjection" version="5.0.0" />
-        <dependency id="Microsoft.Extensions.Configuration" version="5.0.0" />
-        <dependency id="Reloadify3000" version="1.0.6" />
-      </group>
       <group targetFramework=".NETStandard2.1">
         <dependency id="Microsoft.Maui.Graphics" version="6.0.100-preview.4.134" exclude="Build,Analyzers" />
         <dependency id="Microsoft.Extensions.Configuration" version="5.0.0" />
@@ -106,12 +97,6 @@
     </dependencies>
   </metadata>
   <files>
-    <file src="src/Comet/bin/Debug/netstandard2.0/Comet.dll" target="lib/netstandard2.0/Comet.dll"/>
-    <file src="src/Comet/bin/Debug/netstandard2.0/Comet.pdb" target="lib/netstandard2.0/Comet.pdb"/>
-    <file src="src/Comet/bin/Debug/netstandard2.0/Microsoft.Maui.dll" target="lib/netstandard2.0/Microsoft.Maui.dll"/>
-    <file src="src/Comet/bin/Debug/netstandard2.0/Microsoft.Maui.pdb" target="lib/netstandard2.0/Microsoft.Maui.pdb"/>
-    <file src="src/Comet/bin/Debug/netstandard2.0/Microsoft.Maui.Essentials.dll" target="lib/netstandard2.0/Microsoft.Maui.Essentials.dll"/>
-    <file src="src/Comet/bin/Debug/netstandard2.0/Microsoft.Maui.Essentials.pdb" target="lib/netstandard2.0/Microsoft.Maui.Essentials.pdb"/>
     <file src="src/Comet/bin/Debug/netstandard2.1/Comet.dll" target="lib/netstandard2.1/Comet.dll"/>
     <file src="src/Comet/bin/Debug/netstandard2.1/Comet.pdb" target="lib/netstandard2.1/Comet.pdb"/>
     <file src="src/Comet/bin/Debug/netstandard2.1/Microsoft.Maui.dll" target="lib/netstandard2.1/Microsoft.Maui.dll"/>
