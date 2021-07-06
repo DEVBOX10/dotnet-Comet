@@ -8,7 +8,9 @@ using Comet.Helpers;
 using Comet.Internal;
 //using System.Reflection;
 using Comet.Reflection;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Maui;
+using Microsoft.Maui.Animations;
 using Microsoft.Maui.Essentials;
 using Microsoft.Maui.Graphics;
 using Microsoft.Maui.HotReload;
@@ -19,7 +21,7 @@ using Rectangle = Microsoft.Maui.Graphics.Rectangle;
 namespace Comet
 {
 
-	public class View : ContextualObject, IDisposable, IView, IHotReloadableView, IPage, ISafeAreaView, IContentTypeHash//, IClipShapeView
+	public class View : ContextualObject, IDisposable, IView, IHotReloadableView, IPage, ISafeAreaView, IContentTypeHash, IAnimator
 	{
 		public static readonly Size UseAvailableWidthAndHeight = new Size(-1, -1);
 
@@ -27,6 +29,10 @@ namespace Comet
 		protected static Dictionary<string, string> HandlerPropertyMapper = new()
 		{
 			[nameof(MeasuredSize)] = nameof(IFrameworkElement.DesiredSize),
+			[EnvironmentKeys.Fonts.Size] = nameof(IText.Font),
+			[EnvironmentKeys.Fonts.Slant] = nameof(IText.Font),
+			[EnvironmentKeys.Fonts.Family] = nameof(IText.Font),
+			[EnvironmentKeys.Fonts.Weight] = nameof(IText.Font),
 		};
 
 		IReloadHandler reloadHandler;
@@ -121,6 +127,7 @@ namespace Comet
 				viewHandler?.SetVirtualView(this);
 			if (replacedView != null)
 				replacedView.ViewHandler = handler;
+			AddAllAnimationsToManager();
 			return true;
 
 		}
@@ -242,8 +249,8 @@ namespace Comet
 						{
 							State.AddGlobalProperties(props);
 						}
-						UpdateBuiltViewContext(view);
 						builtView = view.GetRenderView();
+						UpdateBuiltViewContext(builtView);
 					}
 					catch(Exception ex)
 					{
@@ -306,7 +313,7 @@ namespace Comet
 				Debug.WriteLine(ex);
 			}
 			ViewHandler?.UpdateValue(GetHandlerPropertyName(property));
-			replacedView?.ViewPropertyChanged(property, value);
+			builtView?.ViewPropertyChanged(property, value);
 		}
 
 		protected virtual string GetHandlerPropertyName(string property) =>
@@ -315,6 +322,7 @@ namespace Comet
 
 		internal override void ContextPropertyChanged(string property, object value, bool cascades)
 		{
+			builtView?.ContextPropertyChanged(property, value, cascades);
 			ViewPropertyChanged(property, value);
 		}
 
@@ -604,21 +612,45 @@ namespace Comet
 
 		public void AddAnimation(Animation animation)
 		{
-			animation.Parent = new WeakReference<View>(this);
+			animation.Parent = new WeakReference<IAnimator>(this);
 			GetAnimations(true).Add(animation);
-			AnimationManger.Add(animation);
+			AddAnimationsToManager(animation);
 		}
 		public void RemoveAnimation(Animation animation)
 		{
 			animation.Parent = null;
 			GetAnimations(false)?.Remove(animation);
-			AnimationManger.Remove(animation);
 		}
 
 		public void RemoveAnimations() => GetAnimations(false)?.ToList().ForEach(animation => {
 			animations.Remove(animation);
-			AnimationManger.Remove(animation);
+			RemoveAnimationsFromManager(animation);
 		});
+		void AddAnimationsToManager(Animation animation)
+		{
+			var animationManager = GetAnimationManager();
+			if (animationManager == null)
+				return;
+			ThreadHelper.RunOnMainThread(()=> animationManager.Add(animation));
+		}
+
+		protected virtual IMauiContext GetMauiContext() => ViewHandler?.MauiContext ?? BuiltView?.GetMauiContext();
+		IAnimationManager GetAnimationManager() => GetMauiContext()?.Services.GetRequiredService<IAnimationManager>();
+
+		void AddAllAnimationsToManager()
+		{
+			var animationManager = GetAnimationManager();
+			if (animationManager == null)
+				return;
+			ThreadHelper.RunOnMainThread(()=>GetAnimations(false)?.ToList().ForEach(animationManager.Add));
+		}
+		void RemoveAnimationsFromManager(Animation animation)
+		{
+			var animationManager = GetAnimationManager();
+			if (animationManager == null)
+				return;
+			animationManager.Remove(animation);
+		}
 
 		public virtual void PauseAnimations()
 		{
@@ -659,7 +691,7 @@ namespace Comet
 
 		public bool RequiresContainer => HasContent;
 
-		//public IShape ClipShape => this.GetClipShape();
+		IShape IFrameworkElement.Clip => this.GetClipShape();
 
 		IView IReplaceableView.ReplacedView => this.ReplacedView;
 
