@@ -9,7 +9,7 @@ namespace Comet
 {
 	public class Binding
 	{
-		public object Value { get; set; }
+		public object Value { get; protected set; }
 
 		public bool IsValue { get; internal set; }
 		public bool IsFunc { get; internal set; }
@@ -234,7 +234,8 @@ namespace Comet
 				View?.ViewPropertyChanged(propertyName, CurrentValue);
 
 		}
-		T Cast(object value)
+
+		static T Cast(object value)
 		{
 			if (value is T v)
 				return v;

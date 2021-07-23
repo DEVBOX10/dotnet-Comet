@@ -18,23 +18,30 @@ jobs:
         with:
           submodules: true
 
-      - name: Add msbuild to PATH
-        uses: microsoft/setup-msbuild@v1.0.2
+      - name: Install Visual Studio Preview
+        shell: pwsh
+        run: powershell .\build\install-vs.ps1
+      
+      
+      - name: Add MSBuild to Path
+        shell: pwsh
+        run: |
+          dotnet tool update -g dotnet-vs
+          & echo "$(vs where preview --prop=InstallationPath)\MSBuild\Current\Bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
-      - name:  install .NET 6.0.100-preview.4.21255.9
+      - name:  install .NET 6.0.100-preview.6.21355.2
         shell: pwsh
         run: |
           $ProgressPreference = 'SilentlyContinue'
           Invoke-WebRequest -Uri "https://dot.net/v1/dotnet-install.ps1" -OutFile dotnet-install.ps1
-          & .\dotnet-install.ps1 -Version 6.0.100-preview.4.21255.9 -InstallDir "$env:ProgramFiles\dotnet\" -Verbose
+          & .\dotnet-install.ps1 -Version 6.0.100-preview.6.21355.2 -InstallDir "$env:ProgramFiles\dotnet\" -Verbose
           & dotnet --list-sdks
-      
-
+          
       - name: Install and Run maui-check Tool
         shell: pwsh
         run: |
-          & dotnet tool update --global redth.net.maui.check --version 0.4.1 --add-source https://api.nuget.org/v3/index.json
-          & maui-check --ci --non-interactive --fix --skip androidsdk --skip xcode --skip vswin --skip vsmac --manifest https://raw.githubusercontent.com/Redth/dotnet-maui-check/main/manifests/maui-dev.manifest.json
+          & dotnet tool update --global redth.net.maui.check
+          & maui-check --preview --ci --non-interactive --fix --skip androidsdk --skip xcode --skip vswin --skip vsmac --skip edgewebview2
 
       - name: Restore Comet-Nuget.sln
         run: nuget restore build/Comet-Nuget.sln
@@ -44,9 +51,9 @@ jobs:
 
       - name: Restore Comet-net6-Nuget.sln
         run: dotnet restore build/Comet-net6-Nuget.sln
- 
+
       - name: Build Comet-net6-Nuget.sln
-        run: dotnet build build/Comet-net6-Nuget.sln
+        run: msbuild build/Comet-net6-Nuget.sln
         
       - name: Nuget Pack step
         shell: bash
@@ -72,44 +79,20 @@ jobs:
             **\*.nupkg
             **\*.snupkg
             **\*.symbols.nupkg
-  
-  test:
-      name: Run Tests
-      needs: build
-      runs-on: windows-latest
-      steps:
-        - uses: actions/checkout@v2
-          with:
-            submodules: true
       
-        - name: Add msbuild to PATH
-          uses: microsoft/setup-msbuild@v1.0.2
+      - name: Restore Comet-Tests.sln
+        run: nuget restore build/Comet-Tests.sln
 
-        - name:  install .NET 6.0.100-preview.4.21255.9
-          shell: pwsh
-          run: |
-            $ProgressPreference = 'SilentlyContinue'
-            Invoke-WebRequest -Uri "https://dot.net/v1/dotnet-install.ps1" -OutFile dotnet-install.ps1
-            & .\dotnet-install.ps1 -Version 6.0.100-preview.4.21255.9 -InstallDir "$env:ProgramFiles\dotnet\" -Verbose
-            & dotnet --list-sdks
-        - name: Install and Run maui-check Tool
-          shell: pwsh
-          run: |
-            & dotnet tool update --global redth.net.maui.check --version 0.4.1 --add-source https://api.nuget.org/v3/index.json
-            & maui-check --ci --non-interactive --fix --skip androidsdk --skip xcode --skip vswin --skip vsmac --manifest https://raw.githubusercontent.com/Redth/dotnet-maui-check/main/manifests/maui-dev.manifest.json
-        - name: Restore Comet-Tests.sln
-          run: nuget restore build/Comet-Tests.sln
-
-        - name: Build Tests Project
-          run: msbuild tests/Comet.Tests/Comet.Tests.csproj /p:Configuration=Release
-          
-        - name: Run Tests Project
-          run: dotnet test tests/Comet.Tests/Comet.Tests.csproj
-            
+      - name: Build Tests Project
+        run: msbuild tests/Comet.Tests/Comet.Tests.csproj /p:Configuration=Release
+        
+      - name: Run Tests Project
+        run: dotnet test tests/Comet.Tests/Comet.Tests.csproj
+  
   publish:
       name: Publish
       needs:
-        - test
+        - build
       runs-on: windows-latest
       steps:
         - name: Download Artifacts
