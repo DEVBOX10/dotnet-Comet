@@ -14,7 +14,7 @@ namespace Comet
 		public ILayoutManager LayoutManager => layout ??= CreateLayoutManager();
 		public ILayoutHandler LayoutHandler => ViewHandler as ILayoutHandler;
 
-		IReadOnlyList<IView> IContainer.Children => this.GetChildren();
+		Thickness ILayout.Padding => this.GetPadding();
 
 		protected override void OnAdded(View view)
 		{
@@ -48,7 +48,7 @@ namespace Comet
 				padding.Right,
 				frame.Width - padding.HorizontalThickness,
 				frame.Height - padding.VerticalThickness);
-			LayoutManager?.ArrangeChildren(bounds);
+			CrossPlatformArrange(bounds);
 		}
 
 		public override Size GetDesiredSize(Size availableSize)
@@ -66,7 +66,10 @@ namespace Comet
 			//LayoutManager?.Invalidate();
 		}
 
-		void ILayout.Add(IView child) => this.Add(child);
-		void ILayout.Remove(IView child) => this.Remove(child);
+		public virtual Size CrossPlatformMeasure(double widthConstraint, double heightConstraint) => GetDesiredSize(new Size(widthConstraint,heightConstraint));
+		public virtual Size CrossPlatformArrange(Rectangle bounds) {
+			LayoutManager?.ArrangeChildren(bounds);
+			return this.MeasuredSize;
+		}
 	}
 }

@@ -9,7 +9,7 @@ using Microsoft.Maui.Hosting;
 namespace Comet
 {
 
-	public class CometApp : View, IApplication, IStartup, IPage, IMauiContextHolder
+	public class CometApp : View, IApplication, IMauiContextHolder
 	{
 		public CometApp()
 		{
@@ -23,21 +23,6 @@ namespace Comet
 		List<IWindow> windows = new List<IWindow>();
 		public IReadOnlyList<IWindow> Windows => windows;
 
-		IView IPage.Content { get => this.ReplacedView; }
-
-		string IPage.Title => this.GetTitle();
-
-		public virtual void Configure(IAppHostBuilder appBuilder)
-		{
-			appBuilder.ConfigureServices((context, collection) => {
-				collection.AddSingleton<IApplication, CometApp>((s) => {
-					return CurrentApp;
-				});
-
-			});
-			appBuilder.UseCometHandlers();
-		}
-
 
 		IWindow IApplication.CreateWindow(IActivationState activationState)
 		{
@@ -50,7 +35,14 @@ namespace Comet
 			}) ;
 			return CurrentWindow;
 		}
+
+		void IApplication.ThemeChanged()
+		{
+			//TODO: apply new theme
+		}
+
 		IMauiContext IMauiContextHolder.MauiContext { get; set; }
 
+		IReadOnlyList<IWindow> IApplication.Windows => windows;
 	}
 }
