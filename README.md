@@ -1,3 +1,5 @@
+<img src="https://repobeats.axiom.co/api/embed/f917a77cbbdeee19b87fa1f2f932895d1df18b56.svg" />
+
 # Comet ☄️ 
 
 [![dev-build](https://github.com/dotnet/Comet/actions/workflows/dev.yml/badge.svg)](https://github.com/dotnet/Comet/actions/workflows/dev.yml)  [![Clancey.Comet on fuget.org](https://www.fuget.org/packages/Clancey.Comet/badge.svg)](https://www.fuget.org/packages/Clancey.Comet)
@@ -24,8 +26,8 @@ Comet is an MVU style pattern:
 
 ``` cs
 public class MyPage : View {
-	[Body]
-	View body () => new Text("Hello World");
+    [Body]
+    View body () => new Text("Hello World");
 }
 ```
 
@@ -33,10 +35,10 @@ or:
 
 ``` cs
 public class MyPage : View {
-	public MyPage() {
-		Body = body;
-	}
-	View body () => new Text("Hello World");
+    public MyPage() {
+        Body = body;
+    }
+    View body () => new Text("Hello World");
 }
 ```
 
@@ -49,9 +51,9 @@ Download and install the VS extension from the [Releases](https://github.com/Cla
 Then add to your `AppDelegate.cs` and/or `MainActivity.cs`, or similar. See the sample projects here for examples.
 
 ``` cs
- #if DEBUG
-            Comet.Reload.Init();
- #endif
+#if DEBUG
+Comet.Reload.Init();
+#endif
 ```
 
 
@@ -65,7 +67,7 @@ Just add a `State<T>` field to your View
 
 ``` cs
 class MyPage : View {
-	readonly State<int> clickCount = 1;
+    readonly State<int> clickCount = 1;
 }
 ```
 
@@ -80,19 +82,19 @@ Add it as a Field/Property, and add the `[State]` attribute!
 
 ``` cs
 public class MainPage : View {
-		class MyBindingObject : BindingObject {
-			public bool CanEdit {
-				get => GetProperty<bool> ();
-				set => SetProperty (value);
-			}
-			public string Text {
-				get => GetProperty<string> ();
-				set => SetProperty (value);
-			}
-		}
+    class MyBindingObject : BindingObject {
+        public bool CanEdit {
+            get => GetProperty<bool> ();
+            set => SetProperty (value);
+        }
+        public string Text {
+            get => GetProperty<string> ();
+            set => SetProperty (value);
+        }
+    }
 
-		[State]
-		readonly MyBindingObject state;
+    [State]
+    readonly MyBindingObject state;
 }
 
 ```
@@ -106,16 +108,16 @@ Simply update the stateful value and the framework handles the rest.
 ``` cs
 public class MyPage : View {
 
-	readonly State<int> clickCount = 1;
-	readonly State<string> text = "Hello World";
+    readonly State<int> clickCount = 1;
+    readonly State<string> text = "Hello World";
 
-	public MyPage() {
-		Body = () => new VStack {
-			new Text (text),			
-			new Button("Update Text", () => state.Text = $"Click Count: {clickCount.Value++}")
-		};
+    public MyPage() {
+        Body = () => new VStack {
+            new Text (text),			
+            new Button("Update Text", () => state.Text = $"Click Count: {clickCount.Value++}")
+        };
 
-	}
+    }
 }
 ```
 
@@ -130,16 +132,16 @@ Instead, use `new Text(()=> $"Click Count: {clickCount}")`.
 ``` cs
 public class MyPage : View {
 
-	readonly State<int> clickCount = new State<int> (1);
+    readonly State<int> clickCount = new State<int> (1);
 
-	public MyPage() {
-		Body = () => new VStack {
-			new Text (() => $"Click Count: {clickCount}"),
-			new Button("Update Text", () => {
-				clickCount.Value++;
-			}
-		};
-	}
+    public MyPage() {
+        Body = () => new VStack {
+            new Text (() => $"Click Count: {clickCount}"),
+            new Button("Update Text", () => {
+                clickCount.Value++;
+            }
+        };
+    }
 }
 
 ```
