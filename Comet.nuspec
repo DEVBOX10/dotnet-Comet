@@ -28,7 +28,9 @@
         <dependency id="Xamarin.Android.Glide" version="4.12.0" />
         <dependency id="Xamarin.AndroidX.Browser" version="1.3.0.5" />
         <dependency id="Microsoft.Extensions.Configuration" version="6.0.0" />
+        <dependency id="Microsoft.Extensions.Hosting" version="6.0.0" />
         <dependency id="Microsoft.Extensions.Hosting.Abstractions" version="6.0.0" />
+        <dependency id="Microsoft.Extensions.Logging" version="6.0.0" />
         <dependency id="Microsoft.Extensions.Logging.Abstractions" version="6.0.0" />
         <dependency id="Microsoft.Extensions.DependencyInjection" version="6.0.0" />
         <dependency id="Microsoft.Extensions.Configuration" version="6.0.0" />
@@ -36,7 +38,9 @@
       <group targetFramework="Xamarin.iOS1.0">
         <dependency id="Microsoft.Maui.Graphics" version="6.0.100-rc.2.470" exclude="Build,Analyzers" />
         <dependency id="Microsoft.Extensions.Configuration" version="6.0.0" />
+        <dependency id="Microsoft.Extensions.Hosting" version="6.0.0" />
         <dependency id="Microsoft.Extensions.Hosting.Abstractions" version="6.0.0" />
+        <dependency id="Microsoft.Extensions.Logging" version="6.0.0" />
         <dependency id="Microsoft.Extensions.Logging.Abstractions" version="6.0.0" />
         <dependency id="Microsoft.Extensions.DependencyInjection" version="6.0.0" />
         <dependency id="Microsoft.Extensions.Configuration" version="6.0.0" />
@@ -44,7 +48,9 @@
       <group targetFramework=".NETStandard2.1">
         <dependency id="Microsoft.Maui.Graphics" version="6.0.100-rc.2.470" exclude="Build,Analyzers" />
         <dependency id="Microsoft.Extensions.Configuration" version="6.0.0" />
+        <dependency id="Microsoft.Extensions.Hosting" version="6.0.0" />
         <dependency id="Microsoft.Extensions.Hosting.Abstractions" version="6.0.0" />
+        <dependency id="Microsoft.Extensions.Logging" version="6.0.0" />
         <dependency id="Microsoft.Extensions.Logging.Abstractions" version="6.0.0" />
         <dependency id="Microsoft.Extensions.DependencyInjection" version="6.0.0" />
         <dependency id="Microsoft.Extensions.Configuration" version="6.0.0" />
@@ -61,6 +67,7 @@
   </metadata>
   <files>
     <file src="Directory.Build.targets" target="build/CometTargets.targets"/>
+    <file src="Directory.Build.props" target="build/CometTargets.Build.props"/>
     <file src="src/Comet/bin/Debug/netstandard2.1/Comet.dll" target="lib/netstandard2.1/Comet.dll"/>
     <file src="src/Comet/bin/Debug/netstandard2.1/Comet.pdb" target="lib/netstandard2.1/Comet.pdb"/>
     <file src="src/Comet/bin/Debug/netstandard2.1/Microsoft.Maui.dll" target="lib/netstandard2.1/Microsoft.Maui.dll"/>

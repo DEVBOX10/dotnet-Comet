@@ -1,12 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-
-using System.Linq;
+﻿using Microsoft.Maui.Layouts;
 using Microsoft.Maui.Graphics;
-using Microsoft.Maui.Layouts;
+using System.Linq;
 
 namespace Comet.Layout
 {
+
+	public interface IAutoGrid : ILayout
+	{
+		void SetupConstraints(View view, ref int currentColumn, ref int currentRow, ref GridConstraints constraint);
+	}
 	public class GridLayoutManager : ILayoutManager
 	{
 		private readonly List<GridConstraints> _constraints = new List<GridConstraints>();
@@ -21,12 +23,14 @@ namespace Comet.Layout
 		private double _height;
 
 		private readonly double _spacing;
-		private readonly Grid grid;
+		private readonly AbstractLayout grid;
+		readonly IAutoGrid autoGrid;
 
-		public GridLayoutManager(Grid grid,
+		public GridLayoutManager(AbstractLayout grid,
 			double? spacing)
 		{
 			this.grid = grid;
+			autoGrid = grid as IAutoGrid;
 			_spacing = spacing ?? 4;
 		}
 
@@ -51,13 +55,16 @@ namespace Comet.Layout
 			{
 				var maxRow = 0;
 				var maxColumn = 0;
+				var currentRow = 0;
+				var correntColumn = 0;
 
 				for (var index = 0; index < layout.Count; index++)
 				{
 					var view = layout[index];
 					var constraint = view.GetLayoutConstraints() as GridConstraints ?? GridConstraints.Default;
+					autoGrid?.SetupConstraints(view, ref correntColumn, ref currentRow, ref constraint);
 					_constraints.Add(constraint);
-
+					Console.WriteLine($"Grid View: {constraint.Column}:{constraint.Row}");
 					maxRow = Math.Max(maxRow, constraint.Row + constraint.RowSpan - 1);
 					maxColumn = Math.Max(maxColumn, constraint.Column + constraint.ColumnSpan - 1);
 				}
@@ -127,7 +134,7 @@ namespace Comet.Layout
 					view.MeasurementValid = true;
 				}
 				view.Measure(w, h);
-				view.Frame = new Rectangle(x, y, w, h);
+				view.SetFrameFromNativeView(new Rectangle(x, y, w, h));
 			}
 
 			return new Size(_width, _height);
@@ -194,16 +201,7 @@ namespace Comet.Layout
 						y += (double)Math.Round(availHeight * position.PositionY);
 					}
 				}
-
-				var margin = view.GetMargin();
-				if (!margin.IsEmpty)
-				{
-					x += margin.Left;
-					y += margin.Top;
-					w -= margin.HorizontalThickness;
-					h -= margin.VerticalThickness;
-				}
-				view.Frame = new Rectangle(x, y, w, h);
+				view.SetFrameFromNativeView(new Rectangle(x, y, w, h));
 			}
 			return measured;
 		}

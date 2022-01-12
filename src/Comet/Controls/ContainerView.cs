@@ -9,8 +9,31 @@ namespace Comet
 	public class ContainerView : View, IList<View>, IContainerView, IContainer
 	{
 		readonly protected List<View> Views = new List<View>();
-
-
+		public void Add(object obj)
+		{
+			if (obj is View vv)
+			{
+				Add(vv);
+			}
+			else if(obj is IView iv)
+			{
+				Add(iv);
+			}
+			else if(obj is IEnumerable<View> iev)
+			{
+				foreach (var v in iev)
+					Add(v);
+			}
+			else if(obj is IEnumerable<IView> ieiv)
+			{
+				foreach (var v in ieiv)
+					Add(v);
+			}
+			else
+			{
+				throw new NotSupportedException("The object either needs to be a View, IView, or IEnumerable<IView>/IEnumerable<View>");
+			}
+		}
 		public void Add(IView iView)
 		{
 			//TODO: Add wrapper

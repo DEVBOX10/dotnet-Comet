@@ -27,6 +27,9 @@ namespace Comet
 			var style = new Styles.Style();
 			style.Apply();
 
+			ViewHandler.ViewMapper.AppendToMapping(nameof(IGestureView.Gestures), CometViewHandler.AddGestures);
+			ViewHandler.ViewCommandMapper.AppendToMapping(Gesture.AddGestureProperty, CometViewHandler.AddGesture);
+			ViewHandler.ViewCommandMapper.AppendToMapping(Gesture.AddGestureProperty, CometViewHandler.RemoveGesture);
 			builder.ConfigureMauiHandlers((handlersCollection) => handlersCollection.AddHandlers(new Dictionary<Type, Type>
 			{
 				{ typeof(AbstractLayout), typeof(LayoutHandler) },
@@ -55,7 +58,9 @@ namespace Comet
 				{typeof(NavigationView), typeof (Handlers.NavigationViewHandler)},
 				{typeof(ScrollView), typeof(Handlers.ScrollViewHandler) },
 				{typeof(ShapeView), typeof(Handlers.ShapeViewHandler)},
-
+#else
+				
+				{typeof(NavigationView), typeof (Microsoft.Maui.Handlers.NavigationViewHandler)},
 #endif
 
 

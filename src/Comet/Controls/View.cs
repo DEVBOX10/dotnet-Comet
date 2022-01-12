@@ -22,7 +22,7 @@ using Rectangle = Microsoft.Maui.Graphics.Rectangle;
 namespace Comet
 {
 
-	public class View : ContextualObject, IDisposable, IView, IHotReloadableView,ISafeAreaView, IContentTypeHash, IAnimator, ITitledElement
+	public class View : ContextualObject, IDisposable, IView, IHotReloadableView,ISafeAreaView, IContentTypeHash, IAnimator, ITitledElement, IGestureView
 	{
 
 		static internal readonly WeakList<IView> ActiveViews = new WeakList<IView>();
@@ -52,6 +52,12 @@ namespace Comet
 		public string Tag
 		{
 			get => GetPropertyFromContext<string>();
+			internal set => SetPropertyInContext(value);
+		}
+
+		public IReadOnlyList<Gesture> Gestures
+		{
+			get => GetPropertyFromContext<List<Gesture>>();
 			internal set => SetPropertyInContext(value);
 		}
 
@@ -143,12 +149,18 @@ namespace Comet
 			}
 			var oldView = view.ViewHandler;
 			this.ReloadHandler = view.ReloadHandler;
+			this.Gestures = view.Gestures;
 			view.ViewHandler = null;
 			view.replacedView?.Dispose();
 			this.ViewHandler = oldView;
 		}
 		View builtView;
 		public View BuiltView => builtView?.BuiltView ?? builtView;
+		/// <summary>
+		/// This will reload the view, forcing a build/diff.
+		/// Bindings are more efficient. But this works with any data models.
+		/// </summary>
+		public void Reload() => Reload(false);
 		internal virtual void Reload(bool isHotReload) => ResetView(isHotReload);
 		void ResetView(bool isHotReload = false)
 		{
@@ -289,11 +301,18 @@ namespace Comet
 
 		internal void BindingPropertyChanged(INotifyPropertyRead bindingObject, string property, string fullProperty, object value)
 		{
-			var prop = property.Split('.').Last();
-			if (!State.UpdateValue(this, (bindingObject, property), fullProperty, value))
-				Reload(false);
-			else
-				ViewPropertyChanged(prop, value);
+			try
+			{
+				var prop = property.Split('.').Last();
+				if (!State.UpdateValue(this, (bindingObject, property), fullProperty, value))
+					Reload(false);
+				else
+					ViewPropertyChanged(prop, value);
+			}
+			catch(Exception ex)
+			{
+				Logger.Error(ex);
+			}
 		}
 		protected const string ResetPropertyString = "ResetPropertyString";
 		public virtual void ViewPropertyChanged(string property, object value)
@@ -439,6 +458,13 @@ namespace Comet
 				return;
 
 			ActiveViews.Remove(this);
+
+			var gestures = Gestures;
+			if (gestures?.Any() ?? false)
+			{
+				foreach (var g in gestures)
+					ViewHandler?.Invoke(Gesture.RemoveGestureProperty, g);
+			}
 
 			Debug.WriteLine($"Active View Count: {ActiveViews.Count}");
 
@@ -589,7 +615,7 @@ namespace Comet
 
 		public virtual void LayoutSubviews(Rectangle frame)
 		{
-			Frame = frame;
+			this.SetFrameFromNativeView(frame);
 			if (BuiltView != null)
 				BuiltView.LayoutSubviews(frame);
 		}
@@ -698,9 +724,9 @@ namespace Comet
 		double IView.Width => this.GetFrameConstraints()?.Width ?? Dimension.Unset;
 		double IView.Height => this.GetFrameConstraints()?.Height ?? Dimension.Unset;
 
-		double IView.MinimumHeight => this.GetEnvironment<double?>(nameof(IView.MinimumHeight)) ?? Dimension.Unset;
+		double IView.MinimumHeight => this.GetEnvironment<double?>(nameof(IView.MinimumHeight)) ?? Dimension.Minimum;
 		double IView.MaximumWidth => this.GetEnvironment<double?>(nameof(IView.MaximumWidth)) ?? Dimension.Maximum;
-		double IView.MinimumWidth => this.GetEnvironment<double?>(nameof(IView.MinimumWidth)) ?? Dimension.Unset;
+		double IView.MinimumWidth => this.GetEnvironment<double?>(nameof(IView.MinimumWidth)) ?? Dimension.Minimum;
 		double IView.MaximumHeight => this.GetEnvironment<double?>(nameof(IView.MaximumHeight)) ?? Dimension.Maximum;
 
 		public IView ReplacedView => this.GetView();// HasContent ? this : BuiltView ?? this;
@@ -756,9 +782,9 @@ namespace Comet
 
 		public string Title => this.GetTitle();
 
-		IShadow IView.Shadow => this.GetEnvironment<IShadow>(nameof(IView.Shadow));
+		IShadow IView.Shadow => this.GetEnvironment<Graphics.Shadow>(EnvironmentKeys.View.Shadow);
 
-		int IView.ZIndex => this.GetEnvironment<int?>(nameof(IView.ZIndex)) ?? 0;
+		//int IView.ZIndex => this.GetEnvironment<int?>(nameof(IView.ZIndex)) ?? 0;
 
 		Size IView.Arrange(Rectangle bounds)
 		{

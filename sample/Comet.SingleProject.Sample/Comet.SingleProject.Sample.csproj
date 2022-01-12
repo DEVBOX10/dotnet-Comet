@@ -1,13 +1,11 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<MauiVersion>6.0.101-preview.12.2336</MauiVersion>
-		<TargetFrameworks>net6.0-android;net6.0-ios;net6.0-maccatalyst</TargetFrameworks>
-		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows')) and '$(MSBuildRuntimeType)' == 'Full'">$(TargetFrameworks);net6.0-windows10.0.19041</TargetFrameworks>
+		<TargetFrameworks>$(MauiPlatforms)</TargetFrameworks>
 		<OutputType>Exe</OutputType>
 		<RootNamespace>CometSample</RootNamespace>
-		<UseMaui>true</UseMaui>
 		<SingleProject>true</SingleProject>
+		<IsPackable>false</IsPackable>
 		<EnablePreviewMsixTooling>true</EnablePreviewMsixTooling>
 		<!-- Display name -->
 		<ApplicationTitle>CometSample</ApplicationTitle>
@@ -17,11 +15,8 @@
 		<ApplicationVersion>1</ApplicationVersion>
 		<!-- Required for C# Hot Reload -->
 		<UseInterpreter Condition="'$(Configuration)' == 'Debug'">True</UseInterpreter>
-		<SupportedOSPlatformVersion Condition="'$(TargetFramework)' == 'net6.0-ios'">14.2</SupportedOSPlatformVersion>
-		<SupportedOSPlatformVersion Condition="'$(TargetFramework)' == 'net6.0-maccatalyst'">14.0</SupportedOSPlatformVersion>
-		<SupportedOSPlatformVersion Condition="'$(TargetFramework)' == 'net6.0-android'">21.0</SupportedOSPlatformVersion>
-		<SupportedOSPlatformVersion Condition="$(TargetFramework.Contains('-windows'))">10.0.17763.0</SupportedOSPlatformVersion>
-		<TargetPlatformMinVersion Condition="$(TargetFramework.Contains('-windows'))">10.0.17763.0</TargetPlatformMinVersion>
+		<_FastDeploymentDiagnosticLogging>True</_FastDeploymentDiagnosticLogging>
+		<WarningsNotAsErrors>CA1416</WarningsNotAsErrors>
 	</PropertyGroup>
 	<ItemGroup Condition=" $(TargetFramework.Contains('-windows')) ">
 		<PackageReference Include="Microsoft.WindowsAppSDK" />
@@ -37,11 +32,18 @@
 		<MauiFont Include="Resources\Fonts\*" />
 	</ItemGroup>
 	<ItemGroup>
-		<ProjectReference Include="..\..\src\Comet\Comet-net6.csproj" />
+		<ProjectReference Include="..\..\External\Maui\src\Core\src\Core-net6.csproj" />
+		<ProjectReference Include="..\..\src\Comet\Comet-net6.debug.csproj" />
 		<ProjectReference Include="..\Comet.Samples\Comet.Samples-net6.csproj" />
+	</ItemGroup>
+	<ItemGroup>
+		<None Update="Resources\Images\turtlerock.jpg">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
 	</ItemGroup>
 	<PropertyGroup Condition="$(TargetFramework.Contains('-windows'))">
 		<OutputType>WinExe</OutputType>
 		<RuntimeIdentifier>win-x64</RuntimeIdentifier>
+		<WindowsPackageType>MSIX</WindowsPackageType>
 	</PropertyGroup>
 </Project>

@@ -11,7 +11,7 @@ namespace Comet.Handlers
 		UIViewController INativeViewHandler.ViewController => viewController;
 		protected override UIView CreateNativeView()
 		{
-			var vc = VirtualView.Content.ToUIViewController(MauiContext);
+			var vc = new Comet.iOS.CometViewController { MauiContext = MauiContext, CurrentView = VirtualView.Content };
 			var nav = VirtualView;
 			if (nav.Navigation != null)
 			{
@@ -28,7 +28,7 @@ namespace Comet.Handlers
 				}
 
 				toView.Navigation = nav;
-				var newVc = toView.ToUIViewController(MauiContext);
+				var newVc = new Comet.iOS.CometViewController { MauiContext = MauiContext, CurrentView = toView };
 				navigationController.PushViewController(newVc, true);
 			});
 			nav.SetPerformPop(() => navigationController.PopViewController(true));

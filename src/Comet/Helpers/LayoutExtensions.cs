@@ -76,6 +76,22 @@ namespace Comet
 			return view;
 		}
 
+		public static T NextRow<T>(this T view, int count = 1) where T : View
+		{
+			view.SetEnvironment(nameof(NextRow), count, false);
+			return view;
+		}
+		public static T NextColumn<T>(this T view, int count = 1) where T : View
+		{
+			view.SetEnvironment(nameof(NextColumn), count, false);
+			return view;
+		}
+		public static int GetIsNextColumn(this View view)
+			=>view.GetEnvironment<int>(nameof(NextColumn), false);
+
+		public static int GetIsNextRow(this View view)
+			=> view.GetEnvironment<int>(nameof(NextRow), false);
+
 		public static void SetFrameFromNativeView(
 			this View view,
 			Rectangle frame)
@@ -153,25 +169,25 @@ namespace Comet
 			//view.RequestLayout();
 		}
 
-		public static T FillHorizontal<T>(this T view, bool cascades = true) where T : View
+		public static T FillHorizontal<T>(this T view, bool cascades = false) where T : View
 		{
 			view.SetEnvironment(EnvironmentKeys.Layout.HorizontalLayoutAlignment, LayoutAlignment.Fill, cascades);
 			return view;
 		}
 
-		public static T FillVertical<T>(this T view, bool cascades = true) where T : View
+		public static T FillVertical<T>(this T view, bool cascades = false) where T : View
 		{
 			view.SetEnvironment(EnvironmentKeys.Layout.VerticalLayoutAlignment, LayoutAlignment.Fill, cascades);
 			return view;
 		}
 
-		public static T FitHorizontal<T>(this T view, bool cascades = true) where T : View
+		public static T FitHorizontal<T>(this T view, bool cascades = false) where T : View
 		{
 			view.SetEnvironment(EnvironmentKeys.Layout.HorizontalLayoutAlignment, LayoutAlignment.Start, cascades);
 			return view;
 		}
 
-		public static T FitVertical<T>(this T view, bool cascades = true) where T : View
+		public static T FitVertical<T>(this T view, bool cascades = false) where T : View
 		{
 			view.SetEnvironment(EnvironmentKeys.Layout.VerticalLayoutAlignment, LayoutAlignment.Start, cascades);
 			return view;
@@ -196,6 +212,13 @@ namespace Comet
 				sizing = view.GetEnvironment<LayoutAlignment?>(view, $"{container.GetType().Name}.{EnvironmentKeys.Layout.VerticalLayoutAlignment}");
 			return sizing ?? defaultSizing;
 		}
+
+		public static T VerticalLayoutAlignment<T>(this T view, LayoutAlignment alignment, bool cascades = false) where T : View
+			=> view.SetEnvironment(EnvironmentKeys.Layout.VerticalLayoutAlignment, alignment,cascades);
+
+		public static T HorizontalLayoutAlignment<T>(this T view, LayoutAlignment alignment, bool cascades = false) where T : View
+			=> view.SetEnvironment(EnvironmentKeys.Layout.HorizontalLayoutAlignment, alignment, cascades);
+
 
 		public static T FrameConstraints<T>(this T view, FrameConstraints constraints, bool cascades = false) where T : View
 		{

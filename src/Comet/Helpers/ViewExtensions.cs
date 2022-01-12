@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using Comet.Internal;
 using Microsoft.Maui;
+using Microsoft.Maui.Graphics;
 
 namespace Comet
 {
@@ -60,6 +61,11 @@ namespace Comet
 		public static T Title<T>(this T view, Func<string> title, bool cascades = true) where T : View =>
 			view.Title((Binding<string>)title, cascades);
 
+		public static T Enabled<T>(this T view, Binding<bool> enabled, bool cascades = true) where T : View =>
+			view.SetEnvironment(nameof(IView.IsEnabled), enabled, cascades, ControlState.Default);
+		public static T Enabled<T>(this T view, Func<bool> enabled, bool cascades = true) where T : View =>
+			view.Enabled((Binding<bool>)enabled, cascades);
+
 		public static string GetTitle(this View view)
 		{
 			var title = view?.GetEnvironment<string>(EnvironmentKeys.View.Title);
@@ -67,26 +73,26 @@ namespace Comet
 			return title;
 		}
 
-		//public static T AddGesture<T>(this T view, Gesture gesture) where T : View
-		//{
-		//	var gestures = (List<Gesture>)(view.Gestures ?? (view.Gestures = new List<Gesture>()));
-		//	gestures.Add(gesture);
-		//	view?.ViewHandler?.UpdateValue(Comet.Gesture.AddGestureProperty);
-		//	return view;
-		//}
-		//public static T RemoveGesture<T>(this T view, Gesture gesture) where T : View
-		//{
-		//	var gestures = (List<Gesture>)view.Gestures;
-		//	gestures.Remove(gesture);
-		//	view?.ViewHandler?.UpdateValue(Comet.Gesture.RemoveGestureProperty);
-		//	return view;
-		//}
+		public static T AddGesture<T>(this T view, Gesture gesture) where T : View
+		{
+			var gestures = (List<Gesture>)(view.Gestures ?? (view.Gestures = new List<Gesture>()));
+			gestures.Add(gesture);
+			view?.ViewHandler?.UpdateValue(Comet.Gesture.AddGestureProperty);
+			return view;
+		}
+		public static T RemoveGesture<T>(this T view, Gesture gesture) where T : View
+		{
+			var gestures = (List<Gesture>)view.Gestures;
+			gestures.Remove(gesture);
+			view?.ViewHandler?.UpdateValue(Comet.Gesture.RemoveGestureProperty);
+			return view;
+		}
 
-		//public static T OnTap<T>(this T view, Action<T> action) where T : View
-		//	=> view.AddGesture(new TapGesture((g) => action?.Invoke(view)));
+		public static T OnTap<T>(this T view, Action<T> action) where T : View
+			=> view.AddGesture(new TapGesture((g) => action?.Invoke(view)));
 
-		//public static T OnTapNavigate<T>(this T view, Func<View> destination) where T : View
-		//	=> view.OnTap((v) => NavigationView.Navigate(view, destination.Invoke()));
+		public static T OnTapNavigate<T>(this T view, Func<View> destination) where T : View
+			=> view.OnTap((v) => NavigationView.Navigate(view, destination.Invoke()));
 
 		public static void Navigate(this View view, View destination) => NavigationView.Navigate(view, destination);
 
@@ -136,6 +142,42 @@ namespace Comet
 				return CometApp.MauiContext;
 			return view.FindParentOfType<IMauiContextHolder>()?.MauiContext ?? CometApp.MauiContext;
 		}
+
+		public static T Aspect<T>(this T image, Aspect aspect) where T : Image =>
+			image.SetEnvironment(nameof(Aspect), aspect);
+
+		public static T Opacity<T>(this T view, double value) where T : View =>
+			view.SetEnvironment(nameof(IView.Opacity), value);
+
+		public static T Background<T>(this T view, Paint value) where T : View =>
+			view.SetEnvironment(nameof(IView.Background), value,false);
+
+		public static T TranslationX<T>(this T view, double value) where T : View =>
+			view.SetEnvironment(nameof(IView.TranslationX), value,false);
+
+		public static T TranslationY<T>(this T view, double value) where T : View =>
+			view.SetEnvironment(nameof(IView.TranslationY), value, false);
+
+		public static T Scale<T>(this T view, double value) where T : View =>
+			view.SetEnvironment(nameof(IView.Scale), value, false);
+		public static T ScaleX<T>(this T view, double value) where T : View =>
+			view.SetEnvironment(nameof(IView.ScaleX), value, false);
+		public static T ScaleY<T>(this T view, double value) where T : View =>
+			view.SetEnvironment(nameof(IView.ScaleY), value, false);
+
+
+		public static T Rotation<T>(this T view, double value) where T : View =>
+			view.SetEnvironment(nameof(IView.Rotation), value, false);
+		public static T RotationX<T>(this T view, double value) where T : View =>
+			view.SetEnvironment(nameof(IView.RotationX), value, false);
+		public static T RotationY<T>(this T view, double value) where T : View =>
+			view.SetEnvironment(nameof(IView.RotationY), value, false);
+
+
+		public static T AnchorX<T>(this T view, double value) where T : View =>
+			view.SetEnvironment(nameof(IView.AnchorX), value, false);
+		public static T AnchorY<T>(this T view, double value) where T : View =>
+			view.SetEnvironment(nameof(IView.AnchorY), value, false);
 
 	}
 }

@@ -126,18 +126,18 @@ namespace {{NameSpace}} {
 		{
 			var interfacePropertyEnvironmentMustache = @"
                 {{{Type}}} {{FullName}} {
-                        get => this.GetEnvironment<{{{CleanType}}}>(nameof({{FullName}})) ?? {{DefaultValue}};
-                        set => this.SetEnvironment(nameof({{FullName}}), value);
+                        get => this.GetEnvironment<{{{CleanType}}}>(""{{Name}}"") ?? {{DefaultValue}};
+                        set => this.SetEnvironment(""{{Name}}"", value);
                 }
 ";
 			var interfacePropertySetOnlyEnvironmentMustache = @"
                 {{{Type}}} {{FullName}} {
-                        set => this.SetEnvironment(nameof({{FullName}}), value);
+                        set => this.SetEnvironment(""{{Name}}"", value);
                 }
 ";
 
 			var interfacePropertyGetOnlyEnvironmentMustache = @"
-                {{{Type}}} {{FullName}} => this.GetEnvironment<{{{CleanType}}}>(nameof({{FullName}})) ?? {{DefaultValue}};
+                {{{Type}}} {{FullName}} => this.GetEnvironment<{{{CleanType}}}>(""{{Name}}"") ?? {{DefaultValue}};
 ";
 
 			var interfacePropertyMustache = @"
@@ -159,7 +159,7 @@ namespace {{NameSpace}} {
 ";
 			var interfacePropertyMethodEnvironmentMustache = @"
 
-				void {{FullName}} ({{{ActionsParameters}}}) => this.GetEnvironment<{{{CleanType}}}>(nameof({{FullName}}))?.Invoke({{{ActionsInvokeParameters}}});
+				void {{FullName}} ({{{ActionsParameters}}}) => this.GetEnvironment<{{{CleanType}}}>(""{{Name}}"")?.Invoke({{{ActionsInvokeParameters}}});
 ";
 
 			var interfacePropertyMethodMustache = @"
@@ -264,18 +264,20 @@ namespace {{NameSpace}} {
 					{
 						parameters = mi.Parameters.Select(x => (GetFullName(x.Type), x.Name)).ToList();
 						var parameterTypeString = string.Join(", ", parameters.Select(x => $"{x.Type} {x.Name}"));
-					
+						var parameterTypeOnlyString = string.Join(", ", parameters.Select(x =>x.Type));
+						var paramString = parameters.Count > 1 ? $"({parameterTypeString})" : parameterTypeOnlyString;
+
 						if (mi.ReturnsVoid)
 						{
 							if (mi.Parameters.Any())
 							{
-								type = $"System.Action<({parameterTypeString})>";
+								type = $"System.Action<{paramString}>";
 							}
 						}
 						else
 						{
 							if (mi.Parameters.Any()) {
-								type = $"System.Func<({parameterTypeString}),{GetFullName(mi.ReturnType)}>";
+								type = $"System.Func<{paramString},{GetFullName(mi.ReturnType)}>";
 							}
 							else
 							{
@@ -287,7 +289,6 @@ namespace {{NameSpace}} {
 					}
 
 					var cleanType = canBeNull ? type : $"{type}?";
-
 					if (keyProperties.Contains(m.Name))
 					{
 						constructorTypes[m.Name] = type;
@@ -353,7 +354,7 @@ namespace {{NameSpace}} {
 					LowercaseName = x.Name.LowercaseFirst(),
 					Parameter = x.Parameters,					
 					ActionsParameters = string.Join(", ", ((List<(string Type, string Name)>)x.Parameters).Select(x => $"{x.Type} {x.Name}")),
-					ActionsInvokeParameters = x.Parameters.Any() ? "(" + string.Join(", ", ((List<(string Type, string Name)>)x.Parameters).Select(x => x.Name)) + ")" : "",
+					ActionsInvokeParameters = x.Parameters.Any() ? x.Parameters.Count == 1 ? x.Parameters[0].Name : "(" + string.Join(", ", ((List<(string Type, string Name)>)x.Parameters).Select(x => x.Name)) + ")" : "",
 					x.Skip
 				}).ToList(),
 				ParametersFunction = new Func<dynamic, string, object>((dyn, str) => string.Join(",", ((IEnumerable<dynamic>)dyn.Parameters).Select(x => stubble.Render(str, new {
