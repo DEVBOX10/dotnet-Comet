@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using Comet.Internal;
 using Microsoft.Maui;
+using Microsoft.Maui.Platform;
 
 namespace Comet
 {
-	public class CometWindow : ContentView, IWindow
+	public class CometWindow : ContentView, IWindow, IToolbarElement
 	{
 		public float DisplayScale { get; private set; } = 1;
 		private IMauiContext mauiContext;
@@ -59,7 +61,12 @@ namespace Comet
 
 		}
 
-		bool IWindow.BackButtonClicked() => true;
+		bool IWindow.BackButtonClicked()
+		{
+			var nav = this.Content.FindNavigation();
+			nav.Pop();
+			return true;
+		}
 		void IWindow.Backgrounding(IPersistedState state)
 		{
 
@@ -94,5 +101,13 @@ namespace Comet
 			return result;
 
 		}
+
+		void IWindow.DisplayDensityChanged(float displayDensity) => DisplayScale = displayDensity;
+		float IWindow.RequestDisplayDensity() => ViewHandler?.InvokeWithResult(nameof(IWindow.RequestDisplayDensity), new DisplayDensityRequest()) ?? DisplayScale;
+
+		public static IToolbar Toolbar = new Toolbar(true, true);
+		IToolbar IToolbarElement.Toolbar => this.GetProperty<IToolbar>(nameof(IToolbarElement.Toolbar), false) ?? Toolbar;
+
+		FlowDirection IWindow.FlowDirection => this.GetEnvironment<FlowDirection>(nameof(IWindow.FlowDirection));
 	}
 }

@@ -4,7 +4,6 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Maui.HotReload;
 using Esp.Resources;
 using System.Reflection;
@@ -44,8 +43,6 @@ namespace Comet
 			public async void Initialize(IServiceProvider services)
 			{
 				var handlers = services.GetRequiredService<IMauiHandlersFactory>();
-
-				MauiHotReloadHelper.Init(handlers.GetCollection());
 
 				Reloadify.Reload.Instance.ReplaceType = (d) =>
 				{

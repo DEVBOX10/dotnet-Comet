@@ -30,13 +30,13 @@ namespace Comet.Samples
 			ViewFor = (song) => new HStack
 			{
 				new Image (song.ArtworkUrl).Frame(52, 52).Margin(4),
-				new VStack(HorizontalAlignment.Leading, spacing:2)
+				new VStack(LayoutAlignment.Start, spacing:2)
 				{
 					new Text (song.Title).FontSize(17),
 					new Text (song.Artist).Color(Colors.Grey),
 					new Text (song.Album).Color(Colors.Grey),
 				}.FontSize(12)
-			}.Frame(height: 60, alignment: Alignment.Leading),
+			}.Frame(height: 60).Alignment(Alignment.Leading),
 		}.OnSelectedNavigate((song) => new ListViewDetails().SetEnvironment("song",song));
 	}
 }

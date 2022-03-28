@@ -26,7 +26,7 @@ namespace Comet.Samples
 					new ShapeView(new RoundedRectangle(4.0f)
 						.Style(Graphics.DrawingStyle.Fill)
 						.Fill(Colors.Grey))
-						.Frame(40,30,alignment: Alignment.Trailing)
+						.Frame(40,30).Alignment( Alignment.Trailing)
 						.Margin(top: 30, right: 30)
 						.FitHorizontal(),
 
@@ -65,7 +65,7 @@ namespace Comet.Samples
 							.Color(Colors.Black)
 					}.Margin(left:30, bottom:30).Frame(height: 20),
 
-				}.RoundedBorder(radius: 8, color: Color.FromHex("#3177CB"), filled: true).Margin(30)
+				}.RoundedBorder(radius: 8, color: Color.FromArgb("#3177CB"), filled: true).Margin(30)
 			}.Background("#f6f6f6"),
 
 			new BorderedEntry(Card.Number,"Enter CC Number", "\uf09d")
@@ -106,11 +106,11 @@ namespace Comet.Samples
 				.Margin(left:20, right:20),
 
 
-		}.FillHorizontal().Frame(alignment: Alignment.Top);
+		}.FillHorizontal().Alignment(Alignment.Top);
 
 		public class Separator : ShapeView
 		{
-			public Separator() : base(new Shapes.Rectangle().Stroke(Colors.Grey, 2))
+			public Separator() : base(new Rectangle().Stroke(Colors.Grey, 2))
 			{
 				this.Frame(height: 1);
 			}

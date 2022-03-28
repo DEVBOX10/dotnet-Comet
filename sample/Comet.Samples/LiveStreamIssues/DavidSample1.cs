@@ -8,12 +8,12 @@ namespace Comet.Samples.LiveStreamIssues
 	{
 		[Body]
 		View body() =>
-			new VStack(HorizontalAlignment.Center)
+			new VStack(LayoutAlignment.Center)
 			{
 				new HStack
 				{
 					new ShapeView(new Circle().Stroke(Colors.Black, 2f)).Frame(44,44)
 				}
-			}.Frame(alignment: Alignment.Top);
+			}.Alignment(Alignment.Top);
 	}
 }

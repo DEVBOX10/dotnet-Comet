@@ -17,14 +17,12 @@ using Microsoft.Maui.HotReload;
 using Microsoft.Maui.Internal;
 using Microsoft.Maui.Layouts;
 using Microsoft.Maui.Primitives;
-using Rectangle = Microsoft.Maui.Graphics.Rectangle;
 
 namespace Comet
 {
 
-	public class View : ContextualObject, IDisposable, IView, IHotReloadableView,ISafeAreaView, IContentTypeHash, IAnimator, ITitledElement, IGestureView
+	public class View : ContextualObject, IDisposable, IView, IHotReloadableView,ISafeAreaView, IContentTypeHash, IAnimator, ITitledElement, IGestureView, IBorder
 	{
-
 		static internal readonly WeakList<IView> ActiveViews = new WeakList<IView>();
 		HashSet<(string Field, string Key)> usedEnvironmentData = new HashSet<(string Field, string Key)>();
 		protected static Dictionary<string, string> HandlerPropertyMapper = new()
@@ -130,12 +128,18 @@ namespace Comet
 			var oldViewHandler = viewHandler;
 			//viewHandler?.Remove(this);
 			viewHandler = handler;
-			if(viewHandler?.VirtualView != this)
+			if (viewHandler?.VirtualView != this)
 				viewHandler?.SetVirtualView(this);
 			if (replacedView != null)
 				replacedView.ViewHandler = handler;
 			AddAllAnimationsToManager();
+			OnHandlerChange();
 			return true;
+
+		}
+
+		protected virtual void OnHandlerChange()
+		{
 
 		}
 
@@ -265,11 +269,11 @@ namespace Comet
 						builtView = view.GetRenderView();
 						UpdateBuiltViewContext(builtView);
 					}
-					catch(Exception ex)
+					catch (Exception ex)
 					{
 						if (Debugger.IsAttached)
 						{
-							builtView = new VStack {new Text(ex.Message.ToString()).LineBreakMode(LineBreakMode.WordWrap) };
+							builtView = new VStack { new Text(ex.Message.ToString()).LineBreakMode(LineBreakMode.WordWrap) };
 						}
 						else throw ex;
 					}
@@ -339,7 +343,7 @@ namespace Comet
 
 		protected virtual string GetHandlerPropertyName(string property) =>
 			HandlerPropertyMapper.TryGetValue(property, out var value) ? value : property;
-		
+
 
 		internal override void ContextPropertyChanged(string property, object value, bool cascades)
 		{
@@ -401,7 +405,7 @@ namespace Comet
 			{
 				var key = item.Key;
 				var value = this.GetEnvironment(key);
-				if(value == null)
+				if (value == null)
 				{
 					//Get the current MauiContext
 					//I might be able to do something better, like searching up though the parent
@@ -498,16 +502,16 @@ namespace Comet
 			OnDispose(true);
 		}
 
-		public virtual Rectangle Frame
+		public virtual Rect Frame
 		{
-			get => this.GetEnvironment<Rectangle?>(nameof(Frame), false) ?? Rectangle.Zero;
+			get => this.GetEnvironment<Rect?>(nameof(Frame), false) ?? Rect.Zero;
 			set
 			{
 				var f = Frame;
 				if (f == value)
 					return;
 				this.SetEnvironment(nameof(Frame), value, false);
-				(ViewHandler as IViewHandler)?.NativeArrange(value);
+				(ViewHandler as IViewHandler)?.PlatformArrange(value);
 			}
 		}
 
@@ -545,77 +549,56 @@ namespace Comet
 		{
 			if (BuiltView != null)
 				return BuiltView.GetDesiredSize(availableSize);
-			if (!IsMeasureValid)
-			{
-				var fe = (IView)this;
-				var ms = this.ComputeDesiredSize(availableSize.Width, availableSize.Height);
-				if(fe.Width > 0)
-					ms.Width = fe.Width;
-				if (fe.Height > 0)
-					ms.Height = fe.Height;
-				//TODO: Remove this when we get some LayoutOptions...
-				//This check ignores MArgin which is bad
-				var hSizing = this.GetHorizontalLayoutAlignment(this.Parent as ContainerView);
-				var vSizing = this.GetVerticalLayoutAlignment(this.Parent as ContainerView);
-				if (hSizing == LayoutAlignment.Fill && !double.IsInfinity(availableSize.Width))
-				{
-					ms.Width = availableSize.Width;
-				}
-				if (vSizing == LayoutAlignment.Fill && !double.IsInfinity(availableSize.Height))
-				{
-					ms.Height = availableSize.Height;
-				}
+			if (!IsMeasureValid || lastAvailableSize != availableSize)
+			{ 
+				var frameConstraints = this.GetFrameConstraints();
+				var margins = this.GetMargin();
 
-				ms.Width = Math.Min(ms.Width, availableSize.Width);
-				ms.Height = Math.Min(ms.Height, availableSize.Height);
+				if (frameConstraints?.Height > 0 && frameConstraints?.Width > 0)
+					return new Size(frameConstraints.Width.Value, frameConstraints.Height.Value);
+				var ms = this.ComputeDesiredSize(availableSize.Width, availableSize.Height);
+				if(frameConstraints?.Width > 0)
+					ms.Width = frameConstraints.Width.Value;
+				if (frameConstraints?.Height > 0)
+					ms.Height = frameConstraints.Height.Value;
+
+				ms.Width += margins.HorizontalThickness;
+				ms.Height += margins.HorizontalThickness;
 				MeasuredSize = ms;
 			}
-			IsMeasureValid = true;
+			IsMeasureValid = this.ViewHandler != null;
 			return MeasuredSize;
 		}
 
 
+		Size lastAvailableSize;
 		public Size Measure(double widthConstraint, double heightConstraint)
 		{
 
 			if (BuiltView != null)
 				return MeasuredSize = BuiltView.Measure(widthConstraint, heightConstraint);
-
-			if (!IsMeasureValid)
+			
+			var availableSize = new Size(widthConstraint, heightConstraint);
+			if (!IsMeasureValid || availableSize != lastAvailableSize)
 			{
-				// TODO ezhart Adjust constraints to account for margins
-
-				// TODO ezhart If we can find reason to, we may need to add a MeasureFlags parameter to IView.Measure
-				// Forms has and (very occasionally) uses one. I'd rather not muddle this up with it, but if it's necessary
-				// we can add it. The default is MeasureFlags.None, but nearly every use of it is MeasureFlags.IncludeMargins,
-				// so it's an awkward default. 
-
-				// I'd much rather just get rid of all the uses of it which don't include the margins, and have "with margins"
-				// be the default. It's more intuitive and less code to write. Also, I sort of suspect that the uses which
-				// _don't_ include the margins are actually bugs.
-
-				var frameworkElement = this as IView;
-				
-				var size = GetDesiredSize(new Size(widthConstraint, heightConstraint));
-				widthConstraint = LayoutManager.ResolveConstraints(widthConstraint, frameworkElement.Width, size.Width);
-				heightConstraint = LayoutManager.ResolveConstraints(heightConstraint, frameworkElement.Height, size.Height);
-
-				MeasuredSize = new Size(widthConstraint,heightConstraint);
+				MeasuredSize = GetDesiredSize(new Size(widthConstraint, heightConstraint));
+				if (ViewHandler != null)
+					lastAvailableSize = availableSize;
 				if (MeasuredSize.Width <= 0 || MeasuredSize.Height <= 0)
 				{
 					Console.WriteLine($"Why :( - {this}");
 				}
 			}
 
-			IsMeasureValid = true;
+			IsMeasureValid = ViewHandler != null;
 			return MeasuredSize;
 		}
 
 
 
-		public virtual void LayoutSubviews(Rectangle frame)
+		public virtual void LayoutSubviews(Rect frame)
 		{
-			this.SetFrameFromNativeView(frame);
+			this.SetFrameFromPlatformView(frame);
 			if (BuiltView != null)
 				BuiltView.LayoutSubviews(frame);
 		}
@@ -659,7 +642,7 @@ namespace Comet
 			var animationManager = GetAnimationManager();
 			if (animationManager == null)
 				return;
-			ThreadHelper.RunOnMainThread(()=> animationManager.Add(animation));
+			ThreadHelper.RunOnMainThread(() => animationManager.Add(animation));
 		}
 
 		protected virtual IMauiContext GetMauiContext() => ViewHandler?.MauiContext ?? BuiltView?.GetMauiContext();
@@ -670,7 +653,7 @@ namespace Comet
 			var animationManager = GetAnimationManager();
 			if (animationManager == null)
 				return;
-			ThreadHelper.RunOnMainThread(()=>GetAnimations(false)?.ToList().ForEach(animationManager.Add));
+			ThreadHelper.RunOnMainThread(() => GetAnimations(false)?.ToList().ForEach(animationManager.Add));
 		}
 		void RemoveAnimationsFromManager(Animation animation)
 		{
@@ -693,7 +676,7 @@ namespace Comet
 
 		bool IView.IsEnabled => this.GetEnvironment<bool?>(nameof(IView.IsEnabled)) ?? true;
 
-		Rectangle IView.Frame
+		Rect IView.Frame
 		{
 			get => Frame;
 			set => Frame = value;
@@ -784,9 +767,9 @@ namespace Comet
 
 		IShadow IView.Shadow => this.GetEnvironment<Graphics.Shadow>(EnvironmentKeys.View.Shadow);
 
-		//int IView.ZIndex => this.GetEnvironment<int?>(nameof(IView.ZIndex)) ?? 0;
+		int IView.ZIndex => this.GetEnvironment<int?>(nameof(IView.ZIndex)) ?? 0;
 
-		Size IView.Arrange(Rectangle bounds)
+		Size IView.Arrange(Rect bounds)
 		{
 			LayoutSubviews(bounds);
 			return Frame.Size;
@@ -797,7 +780,7 @@ namespace Comet
 			Measure(widthConstraint, heightConstraint);
 		void IView.InvalidateMeasure() => InvalidateMeasurement();
 		void IView.InvalidateArrange() => IsArrangeValid = false;
-		void IHotReloadableView. TransferState(IView newView) {
+		void IHotReloadableView.TransferState(IView newView) {
 			var oldState = this.GetState();
 			if (oldState == null)
 				return;
@@ -810,5 +793,24 @@ namespace Comet
 		void IHotReloadableView.Reload() => ThreadHelper.RunOnMainThread(() => Reload(true));
 		protected int? TypeHashCode;
 		public virtual int GetContentTypeHashCode() => this.replacedView?.GetContentTypeHashCode() ?? (TypeHashCode ??= this.GetType().GetHashCode());
+
+		protected T GetPropertyValue<T>(bool cascades = true, [CallerMemberName] string key = "") => this.GetEnvironment<T>(key, cascades);
+		bool IView.Focus() => true;
+		void IView.Unfocus() { }
+
+		IBorderStroke IBorder.Border
+		{
+			get
+			{
+				var border = this.GetBorder();
+				if (border != null)
+					border.view = this;
+				return border;
+			}
+		}
+
+		bool IView.IsFocused { get; set; }
+
+		bool IView.InputTransparent => this.GetPropertyValue<bool?>() ?? false;
 	}
 }

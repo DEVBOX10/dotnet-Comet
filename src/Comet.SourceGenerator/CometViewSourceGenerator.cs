@@ -125,37 +125,37 @@ namespace {{NameSpace}} {
 		static CometViewSourceGenerator()
 		{
 			var interfacePropertyEnvironmentMustache = @"
-                {{{Type}}} {{FullName}} {
-                        get => this.GetEnvironment<{{{CleanType}}}>(""{{Name}}"") ?? {{DefaultValue}};
-                        set => this.SetEnvironment(""{{Name}}"", value);
-                }
+				{{{Type}}} {{FullName}} {
+					get => this.GetEnvironment<{{{CleanType}}}>(""{{Name}}"") ?? {{DefaultValue}};
+					set => this.SetEnvironment(""{{Name}}"", value);
+				}
 ";
 			var interfacePropertySetOnlyEnvironmentMustache = @"
-                {{{Type}}} {{FullName}} {
-                        set => this.SetEnvironment(""{{Name}}"", value);
-                }
+				{{{Type}}} {{FullName}} {
+					set => this.SetEnvironment(""{{Name}}"", value);
+				}
 ";
 
 			var interfacePropertyGetOnlyEnvironmentMustache = @"
-                {{{Type}}} {{FullName}} => this.GetEnvironment<{{{CleanType}}}>(""{{Name}}"") ?? {{DefaultValue}};
+				{{{Type}}} {{FullName}} => this.GetEnvironment<{{{CleanType}}}>(""{{Name}}"") ?? {{DefaultValue}};
 ";
 
 			var interfacePropertyMustache = @"
-                {{{Type}}} {{FullName}} {
-                        get => {{Name}}?.CurrentValue ?? {{DefaultValue}};
-                        set => {{Name}}.Set(value);
-                }
+				{{{Type}}} {{FullName}} {
+					get => {{Name}}?.CurrentValue ?? {{DefaultValue}};
+					set => {{Name}}?.Set(value);
+				}
 ";
 
 			var interfacePropertyGetOnlyMustache = @"
-                {{{Type}}} {{FullName}} => {{Name}}?.CurrentValue ?? {{DefaultValue}};
+				{{{Type}}} {{FullName}} => {{Name}}?.CurrentValue ?? {{DefaultValue}};
 ";
 
 
 			var interfacePropertySetOnlyMustache = @"
 				{{{Type}}} {{FullName}} {
-                        set => {{Name}}.Set(value);
-                }
+					set => {{Name}}?.Set(value);
+				}
 ";
 			var interfacePropertyMethodEnvironmentMustache = @"
 
@@ -163,7 +163,7 @@ namespace {{NameSpace}} {
 ";
 
 			var interfacePropertyMethodMustache = @"
-                void {{FullName}} ({{{ActionsParameters}}}) => {{Name}}.CurrentValue?.Invoke({{{ActionsInvokeParameters}}});
+				void {{FullName}} ({{{ActionsParameters}}}) => {{Name}}.CurrentValue?.Invoke({{{ActionsInvokeParameters}}});
 ";
 
 			interfacePropertyDictionary = new Dictionary<(bool HasGet, bool HasSet), (string FromEnvironment, string FromProperty)>
@@ -395,7 +395,7 @@ namespace {{NameSpace}} {
 			context.RegisterForPostInitialization((pi) => pi.AddSource("CometGenerationAttribute__", attributeSource));
 			context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());
 		}
-
+		static INamedTypeSymbol cometViewSymbol;
 		class SyntaxReceiver : ISyntaxContextReceiver
 		{
 			public List<(string name, INamedTypeSymbol interfaceType, List<string> keyProperties, string nameSpace, INamedTypeSymbol baseClass, Dictionary<string, string> propertyNameTransforms, Dictionary<string, string> propertyDefaultValues, List<string> skippedProperties)> TemplateInfo = new();
@@ -403,6 +403,7 @@ namespace {{NameSpace}} {
 			public void OnVisitSyntaxNode(GeneratorSyntaxContext context)
 			{
 				var cometView = context.SemanticModel.Compilation.GetTypeByMetadataName("Comet.View");
+				cometViewSymbol ??= cometView;
 				var attrib = context.Node as AttributeSyntax;
 				if (attrib != null)
 				{
@@ -487,9 +488,9 @@ namespace {{NameSpace}} {
 									return (false, null);
 								}
 								var parts = oldKey.Split(':', '=');
-								var key = parts[0];
-								var newName = hasName ? parts[1] : null;
-								var defaultValue = hasValue ? parts.Last() : null;
+								var key = parts[0].Trim();
+								var newName = hasName ? parts[1].Trim() : null;
+								var defaultValue = hasValue ? parts.Last().Trim() : null;
 
 
 								if (newName != null)
@@ -541,8 +542,22 @@ namespace {{NameSpace}} {
 			static INamedTypeSymbol GetType(GeneratorSyntaxContext context, TypeOfExpressionSyntax expression)
 			{
 				var interfaceType = context.SemanticModel.GetSymbolInfo(expression.Type);
-				var s = GetFullName(interfaceType.Symbol);
+				var symbol = interfaceType.Symbol;
+				if (symbol == null && interfaceType.CandidateSymbols.Length > 1)
+				{
+					symbol = interfaceType.CandidateSymbols.OfType<INamedTypeSymbol>().Where(x=> IsSublcassOfCometView(x)).FirstOrDefault();
+				}
+				var s = GetFullName(symbol);
 				return context.SemanticModel.Compilation.GetTypeByMetadataName(s);
+			}
+			static bool IsSublcassOfCometView(INamedTypeSymbol symbol)
+			{
+				if (symbol.BaseType == null)
+					return false;
+				if (symbol.BaseType == cometViewSymbol)
+					return true;
+
+				return IsSublcassOfCometView(symbol.BaseType);
 			}
 
 		}

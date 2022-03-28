@@ -3,6 +3,7 @@ using System.Linq;
 using Microsoft.Maui;
 using Microsoft.Maui.Graphics;
 using Microsoft.Maui.Layouts;
+using Microsoft.Maui.Primitives;
 
 namespace Comet.Layout
 {
@@ -13,6 +14,7 @@ namespace Comet.Layout
 		ILayout layout;
 
 		public Size Measure(double widthConstraint, double heightConstraint) {
+
 			Size measuredSize = new ();
 			foreach(var c in layout)
 			{
@@ -20,14 +22,19 @@ namespace Comet.Layout
 				measuredSize.Height = Math.Max(measuredSize.Height, s.Height);
 				measuredSize.Width = Math.Max(measuredSize.Width, s.Width);
 			};
+
 			return measuredSize;
 		}
 
-		public Size ArrangeChildren(Rectangle bounds)
+		public Size ArrangeChildren(Rect bounds)
 		{
+			var b = bounds;
 			foreach (var v in layout)
 			{
-				v.Arrange(bounds);
+				if (v is View cv)
+					cv.LayoutSubviews(b);
+				else
+					v.Arrange(b);
 			}
 			return bounds.Size;
 		}

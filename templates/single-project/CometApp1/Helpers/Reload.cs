@@ -5,14 +5,12 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Maui.HotReload;
 using Esp.Resources;
 using System.Reflection;
 using Microsoft.Maui.Hosting;
 using Microsoft.Maui;
 
-[assembly: AssemblyMetadata("IsTrimmable", "True")]
 namespace Comet
 {
 	public static partial class Reload

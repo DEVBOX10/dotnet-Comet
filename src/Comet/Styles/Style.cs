@@ -18,7 +18,9 @@ namespace Comet.Styles
 
 		public FlowDirection FlowDirection { get; set; } = System.Globalization.CultureInfo.CurrentCulture.TextInfo.IsRightToLeft ? FlowDirection.RightToLeft : FlowDirection.LeftToRight;
 
-		public HorizontalAlignment HorizontalAlignment { get; set; } = System.Globalization.CultureInfo.CurrentCulture.TextInfo.IsRightToLeft ? HorizontalAlignment.Trailing : HorizontalAlignment.Leading;
+		public LayoutAlignment HorizontalAlignment { get; set; } = System.Globalization.CultureInfo.CurrentCulture.TextInfo.IsRightToLeft ? LayoutAlignment.End : LayoutAlignment.Start;
+
+		public Thickness LayoutPadding { get; set; } = new Thickness(6);
 
 		public TextStyle Label { get; set; } = new TextStyle
 		{
@@ -112,6 +114,8 @@ namespace Comet.Styles
 			else
 				view.SetEnvironment(nameof(ITextAlignment.HorizontalTextAlignment), HorizontalAlignment);
 
+			SetEnvironmentValue(view, "", nameof(LayoutPadding), LayoutPadding);
+
 			ApplyButton(view);
 			ApplyNavbarStyles(view);
 			ApplyTextStyle(view, Label);
@@ -146,7 +150,7 @@ namespace Comet.Styles
 			SetEnvironment(view, typeof(Button), EnvironmentKeys.Colors.Color, Button?.TextColor);
 			//Set the BorderStyle
 			SetEnvironment(view, typeof(Button), EnvironmentKeys.View.ClipShape, Button?.Border);
-			SetEnvironment(view, typeof(Button), EnvironmentKeys.View.Overlay, Button?.Border);
+			SetEnvironment(view, typeof(Button), EnvironmentKeys.View.Border, Button?.Border);
 			SetEnvironment(view, typeof(Button), EnvironmentKeys.Colors.Background, Button?.BackgroundColor);
 
 			SetEnvironment(view, typeof(Button), EnvironmentKeys.View.Shadow, Button?.Shadow);
@@ -180,7 +184,6 @@ namespace Comet.Styles
 		protected virtual void ApplyViewStyles(ContextualObject view, ViewStyle style, Type viewType)
 		{
 			SetEnvironment(view, viewType, EnvironmentKeys.View.ClipShape, style?.ClipShape);
-			SetEnvironment(view, viewType, EnvironmentKeys.View.Overlay, style?.Overlay);
 			SetEnvironment(view, viewType, EnvironmentKeys.View.Border, style?.Border);
 			SetEnvironment(view, viewType, EnvironmentKeys.Colors.Background, style?.BackgroundColor);
 			SetEnvironment(view, viewType, EnvironmentKeys.View.Shadow, style?.Shadow);
@@ -260,24 +263,22 @@ namespace Comet.Styles
 			setSizing(typeof(HStack), typeof(VStack), EnvironmentKeys.Layout.VerticalLayoutAlignment, LayoutAlignment.Start);
 			setSizing(typeof(VStack), typeof(HStack), EnvironmentKeys.Layout.HorizontalLayoutAlignment, LayoutAlignment.Start);
 			//In a ZStack fill that puppy!
-			setSizing(typeof(ZStack), typeof(VStack), EnvironmentKeys.Layout.VerticalLayoutAlignment, LayoutAlignment.Fill);
-			setSizing(typeof(ZStack), typeof(VStack), EnvironmentKeys.Layout.HorizontalLayoutAlignment, LayoutAlignment.Fill);
-			setSizing(typeof(ZStack), typeof(HStack), EnvironmentKeys.Layout.VerticalLayoutAlignment, LayoutAlignment.Fill);
-			setSizing(typeof(ZStack), typeof(HStack), EnvironmentKeys.Layout.HorizontalLayoutAlignment, LayoutAlignment.Fill);
+			setSizing(typeof(VStack), typeof(ZStack),  EnvironmentKeys.Layout.VerticalLayoutAlignment, LayoutAlignment.Fill);
+			setSizing(typeof(VStack), typeof(ZStack), EnvironmentKeys.Layout.HorizontalLayoutAlignment, LayoutAlignment.Fill);
+			setSizing(typeof(HStack), typeof(ZStack), EnvironmentKeys.Layout.VerticalLayoutAlignment, LayoutAlignment.Fill);
+			setSizing(typeof(HStack), typeof(ZStack),  EnvironmentKeys.Layout.HorizontalLayoutAlignment, LayoutAlignment.Fill);
 
-			setSizing(typeof(Text), typeof(VStack), EnvironmentKeys.Layout.HorizontalLayoutAlignment, LayoutAlignment.Fill);
-			setSizing(typeof(Text), typeof(VStack), EnvironmentKeys.Layout.VerticalLayoutAlignment, LayoutAlignment.Start);
-			setSizing(typeof(Text), typeof(HStack), EnvironmentKeys.Layout.HorizontalLayoutAlignment, LayoutAlignment.Start);
-			setSizing(typeof(Text), typeof(HStack), EnvironmentKeys.Layout.VerticalLayoutAlignment, LayoutAlignment.Fill);
+			//setSizing(typeof(Text), typeof(VStack), EnvironmentKeys.Layout.HorizontalLayoutAlignment, LayoutAlignment.Fill);
+			//setSizing(typeof(Text), typeof(VStack), EnvironmentKeys.Layout.VerticalLayoutAlignment, LayoutAlignment.Start);
+			//setSizing(typeof(Text), typeof(HStack), EnvironmentKeys.Layout.HorizontalLayoutAlignment, LayoutAlignment.Start);
+			//setSizing(typeof(Text), typeof(HStack), EnvironmentKeys.Layout.VerticalLayoutAlignment, LayoutAlignment.Fill);
 			setSizing(typeof(TextField), typeof(VStack), EnvironmentKeys.Layout.HorizontalLayoutAlignment, LayoutAlignment.Fill);
 			setSizing(typeof(TextEditor), typeof(VStack), EnvironmentKeys.Layout.HorizontalLayoutAlignment, LayoutAlignment.Fill);
 			setSizing(typeof(SecureField), typeof(VStack), EnvironmentKeys.Layout.HorizontalLayoutAlignment, LayoutAlignment.Fill);
 			setSizing(typeof(ProgressBar), typeof(VStack), EnvironmentKeys.Layout.HorizontalLayoutAlignment, LayoutAlignment.Fill);
 			setSizing(typeof(Slider), typeof(VStack), EnvironmentKeys.Layout.HorizontalLayoutAlignment, LayoutAlignment.Fill);
-			setSizing(typeof(ScrollView), typeof(HStack), EnvironmentKeys.Layout.HorizontalLayoutAlignment, LayoutAlignment.Fill);
 			setSizing(typeof(ScrollView), typeof(HStack), EnvironmentKeys.Layout.VerticalLayoutAlignment, LayoutAlignment.Fill);
 			setSizing(typeof(ScrollView), typeof(VStack), EnvironmentKeys.Layout.HorizontalLayoutAlignment, LayoutAlignment.Fill);
-			setSizing(typeof(ScrollView), typeof(VStack), EnvironmentKeys.Layout.VerticalLayoutAlignment, LayoutAlignment.Fill);
 			setSizing(typeof(WebView), typeof(HStack), EnvironmentKeys.Layout.HorizontalLayoutAlignment, LayoutAlignment.Fill);
 			setSizing(typeof(WebView), typeof(HStack), EnvironmentKeys.Layout.VerticalLayoutAlignment, LayoutAlignment.Fill);
 			setSizing(typeof(WebView), typeof(VStack), EnvironmentKeys.Layout.VerticalLayoutAlignment, LayoutAlignment.Fill);

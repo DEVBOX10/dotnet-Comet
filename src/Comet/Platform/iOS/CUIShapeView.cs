@@ -4,7 +4,7 @@ using Comet.Graphics;
 using UIKit;
 using Microsoft.Maui.Graphics;
 using Microsoft.Maui;
-using Microsoft.Maui.Graphics.Native;
+using Microsoft.Maui.Graphics.Platform;
 using ObjCRuntime;
 
 namespace Comet.iOS
@@ -48,7 +48,7 @@ namespace Comet.iOS
 					fill = Shape.GetFill(View);
 				}
 
-				var shapeBounds = new RectangleF(
+				var shapeBounds = new RectF(
 					(float)rect.X + (lineWidth / 2),
 					(float)rect.Y + (lineWidth / 2),
 					(float)rect.Width - lineWidth,
