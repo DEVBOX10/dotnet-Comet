@@ -11,7 +11,7 @@ using Comet.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Maui;
 using Microsoft.Maui.Animations;
-using Microsoft.Maui.Essentials;
+using Microsoft.Maui.Devices;
 using Microsoft.Maui.Graphics;
 using Microsoft.Maui.HotReload;
 using Microsoft.Maui.Internal;
@@ -21,7 +21,7 @@ using Microsoft.Maui.Primitives;
 namespace Comet
 {
 
-	public class View : ContextualObject, IDisposable, IView, IHotReloadableView,ISafeAreaView, IContentTypeHash, IAnimator, ITitledElement, IGestureView, IBorder
+	public class View : ContextualObject, IDisposable, IView, IHotReloadableView, ISafeAreaView, IContentTypeHash, IAnimator, ITitledElement, IGestureView, IBorder, IVisualTreeElement
 	{
 		static internal readonly WeakList<IView> ActiveViews = new WeakList<IView>();
 		HashSet<(string Field, string Key)> usedEnvironmentData = new HashSet<(string Field, string Key)>();
@@ -32,6 +32,16 @@ namespace Comet
 			[EnvironmentKeys.Fonts.Slant] = nameof(IText.Font),
 			[EnvironmentKeys.Fonts.Family] = nameof(IText.Font),
 			[EnvironmentKeys.Fonts.Weight] = nameof(IText.Font),
+		};
+
+		protected static HashSet<string> PropertiesThatTriggerLayout = new()
+		{
+			nameof(IText.Font),
+			nameof(IView.MinimumHeight),
+			nameof(IView.MaximumHeight),
+			nameof(IView.MinimumWidth),
+			nameof(IView.MaximumWidth),
+			nameof(IImageSourcePart.Source),
 		};
 
 		IReloadHandler reloadHandler;
@@ -313,7 +323,7 @@ namespace Comet
 				else
 					ViewPropertyChanged(prop, value);
 			}
-			catch(Exception ex)
+			catch (Exception ex)
 			{
 				Logger.Error(ex);
 			}
@@ -339,10 +349,17 @@ namespace Comet
 			var newPropName = GetHandlerPropertyName(property);
 			ViewHandler?.UpdateValue(newPropName);
 			builtView?.ViewPropertyChanged(property, value);
+			if (measurementValid && PropertyChangeShouldTriggerLayout(newPropName))
+			{
+				this.InvalidateMeasurement();
+			}
 		}
 
 		protected virtual string GetHandlerPropertyName(string property) =>
 			HandlerPropertyMapper.TryGetValue(property, out var value) ? value : property;
+
+		protected virtual bool PropertyChangeShouldTriggerLayout(string property) =>
+			PropertiesThatTriggerLayout.Contains(property);
 
 
 		internal override void ContextPropertyChanged(string property, object value, bool cascades)
@@ -530,6 +547,7 @@ namespace Comet
 
 		public void InvalidateMeasurement()
 		{
+			lastAvailableSize = Size.Zero;
 			MeasurementValid = false;
 			(Parent as IView)?.InvalidateMeasure();
 		}
@@ -549,15 +567,15 @@ namespace Comet
 		{
 			if (BuiltView != null)
 				return BuiltView.GetDesiredSize(availableSize);
-			if (!IsMeasureValid || lastAvailableSize != availableSize)
-			{ 
+			if (!MeasurementValid || lastAvailableSize != availableSize)
+			{
 				var frameConstraints = this.GetFrameConstraints();
 				var margins = this.GetMargin();
 
 				if (frameConstraints?.Height > 0 && frameConstraints?.Width > 0)
 					return new Size(frameConstraints.Width.Value, frameConstraints.Height.Value);
 				var ms = this.ComputeDesiredSize(availableSize.Width, availableSize.Height);
-				if(frameConstraints?.Width > 0)
+				if (frameConstraints?.Width > 0)
 					ms.Width = frameConstraints.Width.Value;
 				if (frameConstraints?.Height > 0)
 					ms.Height = frameConstraints.Height.Value;
@@ -566,7 +584,7 @@ namespace Comet
 				ms.Height += margins.HorizontalThickness;
 				MeasuredSize = ms;
 			}
-			IsMeasureValid = this.ViewHandler != null;
+			MeasurementValid = this.ViewHandler != null;
 			return MeasuredSize;
 		}
 
@@ -577,9 +595,9 @@ namespace Comet
 
 			if (BuiltView != null)
 				return MeasuredSize = BuiltView.Measure(widthConstraint, heightConstraint);
-			
+
 			var availableSize = new Size(widthConstraint, heightConstraint);
-			if (!IsMeasureValid || availableSize != lastAvailableSize)
+			if (!MeasurementValid || availableSize != lastAvailableSize)
 			{
 				MeasuredSize = GetDesiredSize(new Size(widthConstraint, heightConstraint));
 				if (ViewHandler != null)
@@ -590,7 +608,7 @@ namespace Comet
 				}
 			}
 
-			IsMeasureValid = ViewHandler != null;
+			MeasurementValid = ViewHandler != null;
 			return MeasuredSize;
 		}
 
@@ -698,11 +716,6 @@ namespace Comet
 
 		Size IView.DesiredSize => MeasuredSize;
 
-		protected bool IsMeasureValid;
-		//bool IView.IsMeasureValid => IsMeasureValid;
-
-		protected bool IsArrangeValid;
-		//bool IView.IsArrangeValid => IsArrangeValid;
 
 		double IView.Width => this.GetFrameConstraints()?.Width ?? Dimension.Unset;
 		double IView.Height => this.GetFrameConstraints()?.Height ?? Dimension.Unset;
@@ -779,7 +792,7 @@ namespace Comet
 			//Measure(new Size(widthConstraint, heightConstraint));
 			Measure(widthConstraint, heightConstraint);
 		void IView.InvalidateMeasure() => InvalidateMeasurement();
-		void IView.InvalidateArrange() => IsArrangeValid = false;
+		void IView.InvalidateArrange() {}
 		void IHotReloadableView.TransferState(IView newView) {
 			var oldState = this.GetState();
 			if (oldState == null)
@@ -797,6 +810,9 @@ namespace Comet
 		protected T GetPropertyValue<T>(bool cascades = true, [CallerMemberName] string key = "") => this.GetEnvironment<T>(key, cascades);
 		bool IView.Focus() => true;
 		void IView.Unfocus() { }
+
+		IReadOnlyList<IVisualTreeElement> IVisualTreeElement.GetVisualChildren() => Array.Empty<IVisualTreeElement>();
+		IVisualTreeElement IVisualTreeElement.GetVisualParent() => this.Parent;
 
 		IBorderStroke IBorder.Border
 		{

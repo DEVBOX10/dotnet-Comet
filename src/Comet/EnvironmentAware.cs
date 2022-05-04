@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
-using Microsoft.Maui.Essentials;
+using Microsoft.Maui.Devices;
 using Comet.Internal;
 
 namespace Comet
@@ -249,7 +249,7 @@ namespace Comet
 		public static T SetEnvironment<T, TValue>(this T view, string key, Binding<TValue> binding, bool cascades = true, ControlState state = ControlState.Default)
 			where T : View
 		{
-			binding.BindToProperty(view, key);
+			binding?.BindToProperty(view, key);
 			key = ContextualObject.GetControlStateKey(state, key);
 			if (!view.SetValue(key, binding, cascades))
 				return view;

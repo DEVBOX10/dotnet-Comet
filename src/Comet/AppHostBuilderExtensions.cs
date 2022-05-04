@@ -4,7 +4,9 @@ using Comet.Handlers;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Maui;
-using Microsoft.Maui.Essentials;
+using Microsoft.Maui.Animations;
+using Microsoft.Maui.ApplicationModel;
+using Microsoft.Maui.Devices;
 using Microsoft.Maui.Handlers;
 using Microsoft.Maui.Hosting;
 
@@ -36,6 +38,14 @@ namespace Comet
 			ViewHandler.ViewMapper.AppendToMapping(nameof(IGestureView.Gestures), CometViewHandler.AddGestures);
 			ViewHandler.ViewCommandMapper.AppendToMapping(Gesture.AddGestureProperty, CometViewHandler.AddGesture);
 			ViewHandler.ViewCommandMapper.AppendToMapping(Gesture.AddGestureProperty, CometViewHandler.RemoveGesture);
+			Lerp.Lerps[typeof(FrameConstraints)] = new Lerp
+			{
+				Calculate = (s, e, progress) => {
+					var start = (FrameConstraints)s;
+					var end = (FrameConstraints)(e);
+					return start.Lerp(end, progress);
+				}
+			};
 			builder.ConfigureMauiHandlers((handlersCollection) => handlersCollection.AddHandlers(new Dictionary<Type, Type>
 			{
 				{ typeof(AbstractLayout), typeof(LayoutHandler) },

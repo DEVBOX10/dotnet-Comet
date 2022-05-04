@@ -57,18 +57,22 @@ namespace Comet.Android.Controls
 				_bottomNavigationView.Menu.Add(0, i, i, title);
 			}
 
+			
+		}
+		protected override void OnAttachedToWindow()
+		{
+			base.OnAttachedToWindow();
 			var index = 0;
-			(MauiContext.Context as MauiAppCompatActivity).SupportFragmentManager
+			MauiContext.GetFragmentManager()
 				.BeginTransaction()
 				.Add(Id, _fragments[index], index.ToString())
 				.Show(_fragments[index])
 				.Commit();
 		}
-
 		private void HandleNavigationItemSelected(object sender, Google.Android.Material.Navigation.NavigationBarView.ItemSelectedEventArgs e)
 		{
 			var index = e.Item.ItemId;
-			var manager = (MauiContext.Context as MauiAppCompatActivity).SupportFragmentManager;
+			var manager = MauiContext.GetFragmentManager();
 			var transaction = manager.BeginTransaction();
 
 			if (manager.FindFragmentByTag(index.ToString()) == null)
