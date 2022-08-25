@@ -28,17 +28,17 @@ jobs:
           distribution: 'zulu' # See 'Supported distributions' for available options
           java-version: '11'
 
-      # - name:  install .NET 
-      #   shell: pwsh
-      #   run: |
-      #     $ProgressPreference = 'SilentlyContinue'
-      #     Invoke-WebRequest -Uri "https://dot.net/v1/dotnet-install.ps1" -OutFile dotnet-install.ps1
-      #     & .\dotnet-install.ps1 -Quality daily -Channel 6.0.3xx -InstallDir "$env:ProgramFiles\dotnet\" -Verbose
-      #     & dotnet --list-sdks    
-              
-      - name: Install Visual Studio Preview
+      - name:  install .NET 
         shell: pwsh
-        run: powershell .\build\install-vs.ps1
+        run: |
+          $ProgressPreference = 'SilentlyContinue'
+          Invoke-WebRequest -Uri "https://dot.net/v1/dotnet-install.ps1" -OutFile dotnet-install.ps1
+          & .\dotnet-install.ps1 -Quality daily -Channel 6.0.3xx -InstallDir "$env:ProgramFiles\dotnet\" -Verbose
+          & dotnet --list-sdks    
+              
+      # - name: Install Visual Studio Preview
+      #   shell: pwsh
+      #   run: powershell .\build\install-vs.ps1
       
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v1.1
@@ -50,22 +50,18 @@ jobs:
         run: |
           & dotnet workload install maui `
             --skip-sign-check `
-            --from-rollback-file https://aka.ms/dotnet/maui/6.0.300/rc.2.json `
-            --source https://pkgs.dev.azure.com/dnceng/public/_packaging/darc-pub-dotnet-runtime-323bf2dd/nuget/v3/index.json `
-            --source https://pkgs.dev.azure.com/dnceng/public/_packaging/darc-pub-dotnet-emsdk-572aeedc/nuget/v3/index.json `
-            --source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet6/nuget/v3/index.json `
-            --source https://pkgs.dev.azure.com/dnceng/public/_packaging/darc-pub-dotnet-runtime-a21b9a2d/nuget/v3/index.json `
+            --from-rollback-file http://aka.ms/dotnet/maui/6.0.300.json `
             --source https://api.nuget.org/v3/index.json
 
 
       - name: Set Maui Version
-        run: dotnet run --project build/MauiVersionUpdater/MauiVersionUpdater.csproj -- https://aka.ms/dotnet/maui/6.0.300/rc.2.json
+        run: dotnet run --project build/MauiVersionUpdater/MauiVersionUpdater.csproj -- http://aka.ms/dotnet/maui/6.0.300.json
 
-      - name: Restore Comet-net6-Nuget.sln
-        run: msbuild /r build/Comet-net6-Nuget.sln
+      - name: Restore Comet-Nuget.sln
+        run: msbuild /r build/Comet-Nuget.sln
  
-      - name: Build Comet-net6-Nuget.sln
-        run: MSBuild build/Comet-net6-Nuget.sln
+      - name: Build Comet-Nuget.sln
+        run: MSBuild build/Comet-Nuget.sln
         
       - name: Nuget Pack step
         shell: bash
