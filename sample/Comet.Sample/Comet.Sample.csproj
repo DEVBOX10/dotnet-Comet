@@ -1,11 +1,14 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<TargetFrameworks>$(MauiPlatforms)</TargetFrameworks>
+		<TargetFrameworks>net7.0-android;net7.0-ios;net7.0-maccatalyst</TargetFrameworks>
+		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows')) and '$(MSBuildRuntimeType)' == 'Full'">$(TargetFrameworks);net7.0-windows10.0.19041.0</TargetFrameworks>
+		
 		<OutputType>Exe</OutputType>
 		<RootNamespace>CometSample</RootNamespace>
 		<SingleProject>true</SingleProject>
 		<IsPackable>false</IsPackable>
+		<UseMaui>true</UseMaui>
 		<EnablePreviewMsixTooling>true</EnablePreviewMsixTooling>
 		<!-- Display name -->
 		<ApplicationTitle>CometSample</ApplicationTitle>
@@ -19,6 +22,9 @@
 		<_FastDeploymentDiagnosticLogging>True</_FastDeploymentDiagnosticLogging>
 		<WarningsNotAsErrors>CA1416</WarningsNotAsErrors>
 		<NoWarn>1701;1702;0649;</NoWarn>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0-ios|AnyCPU'">
+		<EnableCodeSigning>false</EnableCodeSigning>
 	</PropertyGroup>
 	<ItemGroup Condition=" $(TargetFramework.Contains('-windows')) ">
 		<PackageReference Include="Microsoft.WindowsAppSDK" />
@@ -34,10 +40,12 @@
 		<MauiFont Include="Resources\Fonts\*" />
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="Reloadify3000" Version="1.0.8"/>
-		<ProjectReference Include="..\..\src\Comet\Comet.debug.csproj" />
-		<ProjectReference Include="..\..\external\Maui\src\Core\src\Core.csproj" />
-		<ProjectReference Include="..\..\external\Maui\src\Essentials\src\Essentials.csproj" />
+		<PackageReference Include="Reloadify3000" Version="1.0.8" />
+		<ProjectReference Include="..\..\src\Comet\Comet.csproj" />
 	</ItemGroup>
-	<ProjectExtensions><VisualStudio><UserProperties XamarinHotReloadDebuggerTimeoutExceptionCometSingleProjectSampleHideInfoBar="True" /></VisualStudio></ProjectExtensions>
+	<ProjectExtensions>
+		<VisualStudio>
+			<UserProperties XamarinHotReloadDebuggerTimeoutExceptionCometSingleProjectSampleHideInfoBar="True" />
+		</VisualStudio>
+	</ProjectExtensions>
 </Project>
